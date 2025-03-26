@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System;
 using EFramework.Asset;
 using static EFramework.Asset.XAsset;
+using UnityEngine.SceneManagement;
 
 [PrebuildSetup(typeof(TestXAssetBuild))]
 public class TestXAssetScene
@@ -33,7 +34,7 @@ public class TestXAssetScene
         // Assert
         if (bundleMode)
         {
-            XAsset.Scene.Load(sceneName);
+            XAsset.Scene.Load(sceneName, LoadSceneMode.Additive);
             Assert.IsTrue(Bundle.Loaded.ContainsKey(sceneTag));
             XAsset.Scene.Unload(sceneName);
             Assert.IsFalse(Bundle.Loaded.ContainsKey(sceneTag));
@@ -41,7 +42,7 @@ public class TestXAssetScene
         else
         {
             LogAssert.Expect(LogType.Error, new Regex(@"Scene 'TestScene' couldn't be loaded because it has not been added to the active build profile or shared scene list or the AssetBundle has not been loaded.*"));
-            XAsset.Scene.Load(sceneName);
+            XAsset.Scene.Load(sceneName, LoadSceneMode.Additive);
             Assert.IsFalse(Bundle.Loaded.ContainsKey(sceneTag));
         }
     }
@@ -62,7 +63,7 @@ public class TestXAssetScene
                 LogAssert.Expect(LogType.Exception, new Regex(@"NullReferenceException: Object reference not set to an instance of an object.*"));
                 try
                 {
-                    XAsset.Scene.LoadAsync(sceneName);
+                    XAsset.Scene.LoadAsync(sceneName, () => { }, LoadSceneMode.Additive);
                 }
                 catch (Exception e)
                 {
@@ -78,7 +79,7 @@ public class TestXAssetScene
                     // Assert
                     isLoaded = true;
                     XAsset.Scene.Unload(sceneName);
-                });
+                }, LoadSceneMode.Additive);
 
                 // Assert
                 Assert.IsTrue(isLoaded, "场景应该被加载");
