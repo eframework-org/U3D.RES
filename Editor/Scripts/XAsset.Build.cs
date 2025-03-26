@@ -63,7 +63,7 @@ namespace EFramework.Asset.Editor
             /// 构建配置管理器，提供资源打包相关的配置项和界面化设置功能。
             /// 包含输出路径、资源包含/排除规则、资源暂存设置以及合并选项等配置。
             /// </summary>
-            internal class Prefs : EFramework.Asset.XAsset.Prefs
+            internal class Prefs : Asset.XAsset.Prefs
             {
                 // 输出路径配置
                 public const string Output = "Asset/Build/Output@Editor";

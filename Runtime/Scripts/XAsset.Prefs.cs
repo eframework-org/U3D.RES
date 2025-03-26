@@ -61,7 +61,7 @@ namespace EFramework.Asset
         /// </code>
         /// 更多信息请参考模块文档。
         /// </remarks>
-        public partial class Prefs : XPrefs.IPanel
+        public partial class Prefs : XPrefs.Panel
         {
             /// <summary>
             /// Bundle 模式开关的配置键。
