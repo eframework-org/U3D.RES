@@ -124,9 +124,12 @@ namespace EFramework.Asset.Editor
                         Target.Set(MergeSingle, EditorGUILayout.Toggle(Target.GetBool(MergeSingle, MergeSingleDefault)));
                         EditorGUILayout.EndHorizontal();
 
+                        EditorGUILayout.BeginHorizontal();
                         include = Target.GetStrings(Include, IncludeDefault);
                         EditorGUILayout.PropertyField(serialized.FindProperty("include"), new GUIContent("Include"));
+                        if (GUILayout.Button(new GUIContent("?", "Learn more about File Globbing"), GUILayout.Width(20))) Application.OpenURL("https://learn.microsoft.com/zh-cn/dotnet/core/extensions/file-globbing");
                         if (serialized.ApplyModifiedProperties()) Target.Set(Include, include);
+                        EditorGUILayout.EndHorizontal();
 
                         EditorGUILayout.BeginHorizontal();
                         exclude = Target.GetStrings(Exclude, new string[] { });
