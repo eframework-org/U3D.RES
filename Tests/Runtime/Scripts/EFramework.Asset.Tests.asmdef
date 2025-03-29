@@ -1,21 +1,13 @@
 {
     "name": "EFramework.Asset.Tests",
-    "rootNamespace": "",
     "references": [
         "EFramework.Utility",
         "EFramework.Editor",
         "EFramework.Asset",
         "EFramework.Asset.Editor",
-        "EFramework.Asset.Editor.Tests",
-        "UnityEngine.TestRunner"
+        "EFramework.Asset.Editor.Tests"
     ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
 }
