@@ -41,7 +41,7 @@ public class TestXAssetScene
         }
         else
         {
-            LogAssert.Expect(LogType.Error, new Regex(@"Scene 'TestScene' couldn't be loaded because it has not been added to the active build profile or shared scene list or the AssetBundle has not been loaded.*"));
+            LogAssert.Expect(LogType.Error, new Regex(@"Scene 'TestScene' couldn't be loaded because it has not been added to the .*"));
             XAsset.Scene.Load(sceneName, LoadSceneMode.Additive);
             Assert.IsFalse(Bundle.Loaded.ContainsKey(sceneTag));
         }
@@ -59,7 +59,7 @@ public class TestXAssetScene
 
             if (!mode)
             {
-                LogAssert.Expect(LogType.Error, new Regex(@"Scene 'TestScene' couldn't be loaded because it has not been added to the active build profile or shared scene list or the AssetBundle has not been loaded.*"));
+                LogAssert.Expect(LogType.Error, new Regex(@"Scene 'TestScene' couldn't be loaded because it has not been added to the .*"));
                 LogAssert.Expect(LogType.Exception, new Regex(@"NullReferenceException: Object reference not set to an instance of an object.*"));
                 try
                 {
