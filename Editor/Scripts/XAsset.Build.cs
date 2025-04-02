@@ -644,7 +644,7 @@ namespace EFramework.Asset.Editor
                     else
                     {
                         XEditor.Event.Decode<BuildReport>(out var report, args);
-                        var outputDir = XFile.PathJoin(XEnv.ProjectPath, "Temp", XPrefs.GetString(Prefs.LocalUri, Prefs.LocalUriDefault));
+                        var outputDir = Path.GetDirectoryName(report.summary.outputPath);
                         var outputName = Path.GetFileNameWithoutExtension(report.summary.outputPath);
                         var dstDir = XFile.PathJoin(outputDir, outputName + "_Data", "Local", XPrefs.GetString(Prefs.LocalUri, Prefs.LocalUriDefault));
                         XFile.CopyDirectory(srcDir, dstDir, ".manifest");
