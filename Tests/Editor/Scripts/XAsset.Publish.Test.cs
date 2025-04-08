@@ -34,7 +34,7 @@ public class TestXAssetPublish
 
         // 执行发布
         LogAssert.Expect(LogType.Error, new Regex(@"<ERROR> Object does not exist.*"));
-        LogAssert.Expect(LogType.Error, new Regex(@"XEditor.Cmd.Run: finish mc.*"));
+        LogAssert.Expect(LogType.Error, new Regex(@"XEditor\.Cmd\.Run: finish mc.*"));
         var report = XEditor.Tasks.Execute(handler);
 
         // 验证发布结果
