@@ -23,7 +23,7 @@ Xres.Publish 实现了资源包的发布工作流，用于将打包好的资源�
 
 关联配置项：`Asset/LocalUri`、`Asset/RemoteUri`
 
-以上配置项均可在 `EFramework/Preferences/Asset/Publish` 首选项编辑器中进行可视化配置。
+以上配置项均可在 `Tools/EFramework/Preferences/Asset/Publish` 首选项编辑器中进行可视化配置。
 
 ### 2. 自动化流程
 

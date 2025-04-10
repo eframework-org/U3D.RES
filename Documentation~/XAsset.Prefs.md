@@ -36,7 +36,7 @@ XAsset.Prefs 提供了运行时的首选项管理，用于控制运行模式、�
 | 本地资源路径 | `Asset/LocalUri` | `Assets` | 设置资源包的本地路径，用于运行时的加载 |
 | 远端资源路径 | `Asset/RemoteUri` | `${Prefs.Update/PatchUri}/Assets` | 设置资源包的远端路径，用于运行时的下载 |
 
-以上配置项均可在 `EFramework/Preferences/Asset` 首选项编辑器中进行可视化配置。
+以上配置项均可在 `Tools/EFramework/Preferences/Asset` 首选项编辑器中进行可视化配置。
 
 ## 常见问题
 

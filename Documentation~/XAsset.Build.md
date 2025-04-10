@@ -25,7 +25,7 @@ XAsset.Build 提供了资源的构建工作流，支持资源的依赖分析及�
 
 关联配置项：`Asset/AssetUri`、`Asset/LocalUri`
 
-以上配置项均可在 `EFramework/Preferences/Asset/Build` 首选项编辑器中进行可视化配置。
+以上配置项均可在 `Tools/EFramework/Preferences/Asset/Build` 首选项编辑器中进行可视化配置。
 
 ### 2. 自动化流程
 
