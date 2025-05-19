@@ -28,4 +28,4 @@ EFramework Asset for Unity 提供了一套完整的资源管理解决方案，�
 
 - [更新记录](CHANGELOG.md)
 - [贡献指南](CONTRIBUTING.md)
-- [许可证](LICENSE.md) 
+- [许可证](LICENSE.md)
