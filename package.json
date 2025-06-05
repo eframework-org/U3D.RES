@@ -26,8 +26,8 @@
     "asset"
   ],
   "dependencies": {
-    "org.eframework.u3d.util": "0.0.6",
-    "org.eframework.u3d.edit": "0.0.7"
+    "org.eframework.u3d.util": "0.0.7",
+    "org.eframework.u3d.edit": "0.0.9"
   },
   "puerExports": [
     "EFramework.Asset"
