@@ -176,7 +176,13 @@ namespace EFramework.Asset
                             handler.InvokePostload();
                         }
                     }
-                    else XLog.Error("XAsset.Scene.LoadAsync: async load error: {0}", sname);
+                    else
+                    {
+                        XLog.Error("XAsset.Scene.LoadAsync: async load error: {0}", sname);
+
+                        // 加载错误时仍旧回调，业务层可根据 handler.Progress 判断是否加载成功
+                        handler.InvokePostload();
+                    }
                 }
                 else
                 {
@@ -201,9 +207,9 @@ namespace EFramework.Asset
                         handler.InvokePostload();
                     }
                 }
+
                 try { Event.Notify(EventType.OnPostLoadScene, sname); }
                 catch (Exception e) { XLog.Panic(e); }
-                yield return 0;
             }
 
             /// <summary>

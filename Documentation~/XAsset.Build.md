@@ -24,7 +24,7 @@ XAsset.Build 提供了资源的构建工作流，支持资源的依赖分析及�
 | 合并材质 | `Asset/Build/Merge/Material@Editor` | `true` | 合并材质选项 |
 | 合并单包 | `Asset/Build/Merge/Single@Editor` | `false` | 合并单包选项 |
 
-关联配置项：`Asset/AssetUri`、`Asset/LocalUri`
+关联配置项：`Asset/OffsetFactor`、`Asset/AssetUri`、`Asset/LocalUri`
 
 以上配置项均可在 `Tools/EFramework/Preferences/Asset/Build` 首选项编辑器中进行可视化配置。
 
@@ -56,7 +56,7 @@ stateDiagram-v2
 
 在 `Asset/Build/Output@Editor` 目录下会生成以下文件：
 - `*.bundle`：资源包文件，格式为 `path_to_assets.bundle`
-- `Manifest.md5`：资源包清单，格式为 `名称|MD5|大小`
+- `Manifest.db`：资源包清单，格式为 `名称|MD5|大小`
 
 构建产物会在内置构建事件 `XEditor.Event.Internal.OnPreprocessBuild` 触发时内置于安装包的资源目录下：
 

@@ -110,7 +110,7 @@ namespace EFramework.Asset
             public int Release(string from = "")
             {
                 var deps = Manifest.Main.GetAllDependencies(Name);
-                if (deps != null || deps.Length > 0)
+                if (deps != null && deps.Length > 0)
                 {
                     for (var i = 0; i < deps.Length; i++)
                     {
@@ -188,35 +188,78 @@ namespace EFramework.Asset
                 if (!Loaded.TryGetValue(name, out var info))
                 {
                     var deps = Manifest.Main.GetAllDependencies(name);
-                    if (deps != null || deps.Length > 0)
+                    if (deps != null && deps.Length > 0)
                     {
+                        var breakDep = -1;
                         for (var i = 0; i < deps.Length; i++)
                         {
                             var dep = deps[i];
                             if (!Loaded.TryGetValue(dep, out var tmp))
                             {
                                 var path = XFile.PathJoin(Const.LocalPath, dep);
-                                var bundle = AssetBundle.LoadFromFile(path);
-                                tmp = new Bundle() { Name = dep, Source = bundle, Count = 1 };
-                                Loaded.Add(dep, tmp);
+                                var bundle = AssetBundle.LoadFromFile(path, 0, Const.GetOffset(dep));
+                                if (bundle == null)
+                                {
+                                    XLog.Error("XAsset.Bundle.Load: sync load dep-ab error: {0}", dep);
+                                    breakDep = i;
+                                    break;
+                                }
+                                else
+                                {
+                                    tmp = new Bundle() { Name = dep, Source = bundle, Count = 1 };
+                                    Loaded.Add(dep, tmp);
+                                }
                             }
                             else tmp.Obtain(Const.DebugMode ? $"[Sync.Load.1: {name}]" : "");
+                        }
+
+                        // 如果有任何一个依赖加载失败，则解除对已加载依赖的引用
+                        if (breakDep >= 0)
+                        {
+                            for (var i = 0; i < breakDep; i++)
+                            {
+                                var dep = deps[i];
+                                if (Loaded.TryGetValue(dep, out var tmp))
+                                {
+                                    tmp.Release(Const.DebugMode ? $"[Sync.Load.2: {name}]" : "");
+                                }
+                            }
+
+                            return null; // 不再执行后续流程
                         }
                     }
 
                     var file = XFile.PathJoin(Const.LocalPath, name);
-                    if (XFile.HasFile(file))
+                    var mainBundle = AssetBundle.LoadFromFile(file, 0, Const.GetOffset(name));
+                    if (mainBundle == null)
                     {
-                        var bundle = AssetBundle.LoadFromFile(file);
-                        info = new Bundle() { Name = name, Source = bundle, Count = 1 };
+                        XLog.Error("XAsset.Bundle.Load: sync load main-ab error: {0}", name);
+
+                        // 如果主包加载失败，则解除对所有依赖的引用
+                        if (deps != null && deps.Length > 0)
+                        {
+                            for (var i = 0; i < deps.Length; i++)
+                            {
+                                var dep = deps[i];
+                                if (Loaded.TryGetValue(dep, out var tmp))
+                                {
+                                    tmp.Release(Const.DebugMode ? $"[Sync.Load.3: {name}]" : "");
+                                }
+                            }
+                        }
+
+                        return null; // 不再执行后续流程
+                    }
+                    else
+                    {
+                        info = new Bundle() { Name = name, Source = mainBundle, Count = 1 };
                         Loaded.Add(name, info);
                         return info;
                     }
-                    else return null;
                 }
                 else
                 {
-                    info.Obtain(Const.DebugMode ? $"[Sync.Load.2: {name}]" : "");
+                    info.Obtain(Const.DebugMode ? $"[Sync.Load.4: {name}]" : "");
                     return info;
                 }
             }
@@ -233,8 +276,9 @@ namespace EFramework.Asset
                 {
                     var deps = Manifest.Main.GetAllDependencies(name);
                     handler.totalCount += deps.Length + 1; // Self and Dependency
-                    if (deps != null || deps.Length > 0)
+                    if (deps != null && deps.Length > 0)
                     {
+                        var breakDep = -1;
                         for (var i = 0; i < deps.Length; i++)
                         {
                             var dep = deps[i];
@@ -243,7 +287,7 @@ namespace EFramework.Asset
                                 if (!Loading.TryGetValue(dep, out var task))
                                 {
                                     var path = XFile.PathJoin(Const.LocalPath, dep);
-                                    var req = AssetBundle.LoadFromFileAsync(path);
+                                    var req = AssetBundle.LoadFromFileAsync(path, 0, Const.GetOffset(dep));
                                     task = new Task() { Name = dep, Operation = req };
                                     Loading.Add(dep, task);
                                     yield return new WaitUntil(() => task.Operation.isDone);
@@ -253,7 +297,12 @@ namespace EFramework.Asset
 
                                 if (!Loaded.TryGetValue(dep, out var dbundle))
                                 {
-                                    if (task.Operation.assetBundle == null) XLog.Error("XAsset.Bundle.LoadAsync: async load error: {0}", dep);
+                                    if (task.Operation.assetBundle == null)
+                                    {
+                                        XLog.Error("XAsset.Bundle.LoadAsync: async load dep-ab error: {0}", dep);
+                                        breakDep = i;
+                                        break;
+                                    }
                                     else
                                     {
                                         var bundle = new Bundle() { Name = dep, Source = task.Operation.assetBundle, Count = 1 };
@@ -265,6 +314,21 @@ namespace EFramework.Asset
                             else info2.Obtain(Const.DebugMode ? $"[Async.Load.2: {name}]" : "");
                             handler.doneCount++;
                         }
+
+                        // 如果有任何一个依赖加载失败，则解除对已加载依赖的引用
+                        if (breakDep >= 0)
+                        {
+                            for (var i = 0; i < breakDep; i++)
+                            {
+                                var dep = deps[i];
+                                if (Loaded.TryGetValue(dep, out var tmp))
+                                {
+                                    tmp.Release(Const.DebugMode ? $"[Async.Load.3: {name}]" : "");
+                                }
+                            }
+
+                            yield break; // 不再执行后续流程
+                        }
                     }
 
                     if (!Loaded.TryGetValue(name, out var info3))
@@ -272,14 +336,32 @@ namespace EFramework.Asset
                         if (!Loading.TryGetValue(name, out var task))
                         {
                             var path = XFile.PathJoin(Const.LocalPath, name);
-                            var req = AssetBundle.LoadFromFileAsync(path);
+                            var req = AssetBundle.LoadFromFileAsync(path, 0, Const.GetOffset(name));
                             task = new Task() { Name = name, Operation = req };
                             Loading.Add(name, task);
                             yield return new WaitUntil(() => task.Operation.isDone);
                             Loading.Remove(name);
                         }
                         else yield return new WaitUntil(() => task.Operation.isDone);
-                        if (task.Operation.assetBundle == null) XLog.Error("XAsset.Bundle.LoadAsync: async load error: {0}", name);
+                        if (task.Operation.assetBundle == null)
+                        {
+                            XLog.Error("XAsset.Bundle.LoadAsync: async load main-ab error: {0}", name);
+
+                            // 如果主包加载失败，则解除对所有依赖的引用
+                            if (deps != null && deps.Length > 0)
+                            {
+                                for (var i = 0; i < deps.Length; i++)
+                                {
+                                    var dep = deps[i];
+                                    if (Loaded.TryGetValue(dep, out var tmp))
+                                    {
+                                        tmp.Release(Const.DebugMode ? $"[Async.Load.4: {name}]" : "");
+                                    }
+                                }
+                            }
+
+                            yield break;  // 不再执行后续流程
+                        }
                         else
                         {
                             if (Loaded.TryGetValue(name, out var dbundle) == false)
@@ -287,14 +369,13 @@ namespace EFramework.Asset
                                 info3 = new Bundle() { Name = name, Source = task.Operation.assetBundle, Count = 1 };
                                 Loaded.Add(name, info3);
                             }
-                            else dbundle.Obtain(Const.DebugMode ? $"[Async.Load.3: {name}]" : "");
+                            else dbundle.Obtain(Const.DebugMode ? $"[Async.Load.5: {name}]" : "");
                         }
                     }
-                    else info3.Obtain(Const.DebugMode ? $"[Async.Load.4: {name}]" : "");
+                    else info3.Obtain(Const.DebugMode ? $"[Async.Load.6: {name}]" : "");
                     handler.doneCount++;
                 }
-                else info.Obtain(Const.DebugMode ? $"[Async.Load.5: {name}]" : "");
-                yield return 0;
+                else info.Obtain(Const.DebugMode ? $"[Async.Load.7: {name}]" : "");
             }
 
             /// <summary>

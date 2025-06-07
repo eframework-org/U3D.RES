@@ -39,7 +39,7 @@ namespace EFramework.Asset.Editor
         /// 发布规则：
         /// - 新增文件：`文件名@MD5`
         /// - 修改文件：`文件名@MD5`
-        /// - 清单文件：`Manifest.md5` 和 `Manifest.md5@yyyy-MM-dd_HH-mm-ss`（用于版本回退）
+        /// - 清单文件：`Manifest.db` 和 `Manifest.db@yyyy-MM-dd_HH-mm-ss`（用于版本回退）
         /// </code>
         /// 更多信息请参考模块文档。
         /// </remarks>

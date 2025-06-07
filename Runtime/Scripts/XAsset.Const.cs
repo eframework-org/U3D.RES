@@ -201,7 +201,7 @@ namespace EFramework.Asset
             /// <summary>
             /// 资源包文件的扩展名，用于标识打包后的资源文件。
             /// </summary>
-            public const string Extension = ".bundle";
+            public static string Extension = ".bundle";
 
             /// <summary>
             /// 资源名称转换规则表，定义了如何处理资源路径中的特殊字符。
@@ -239,6 +239,26 @@ namespace EFramework.Asset
                     tagCache[assetPath] = bundleName;
                     return bundleName;
                 }
+            }
+
+            internal static bool bOffsetFactor;
+            internal static int offsetFactor;
+
+            /// <summary>
+            /// GetOffset 根据首选项中配置的 Bundle 偏移配置进行文件的偏移计算。
+            /// </summary>
+            /// <param name="bundleName">需要计算文件偏移的 Bundle 名称</param>
+            /// <returns>Bundle 文件偏移</returns>
+            public static ulong GetOffset(string bundleName)
+            {
+                if (string.IsNullOrEmpty(bundleName)) return 0;
+                if (!bOffsetFactor)
+                {
+                    bOffsetFactor = true;
+                    offsetFactor = XPrefs.GetInt(Prefs.OffsetFactor, Prefs.OffsetFactorDefault);
+                }
+                if (offsetFactor <= 0) return 0;
+                return (ulong)((bundleName.Length % offsetFactor + 1) * 28);
             }
             #endregion
         }

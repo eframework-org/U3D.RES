@@ -115,7 +115,7 @@ namespace EFramework.Asset
                         var assetName = path[(index + 1)..];
                         var bundleName = Const.GenTag(path);
                         var bundle = Bundle.Load(bundleName);
-                        if (bundle != null && bundle.Source) asset = bundle.Source.LoadAsset(assetName, type);
+                        if (bundle != null) asset = bundle.Source.LoadAsset(assetName, type);
                         if (Const.ReferMode && asset is GameObject go)
                         {
                             go.AddComponent<Object>().Source = bundleName;
@@ -249,7 +249,13 @@ namespace EFramework.Asset
                         }
                         asset = (task.Operation as AssetBundleRequest).asset;
                     }
-                    else XLog.Error("XAsset.Resource.LoadAsync: async load error: {0}", bundleName);
+                    else
+                    {
+                        XLog.Error("XAsset.Resource.LoadAsync: async load error: {0}", bundleName);
+
+                        // 加载错误时仍旧回调，业务层可根据 handler.Progress 判断是否加载成功
+                        handler.InvokePostload();
+                    }
                 }
 
                 try { Event.Notify(EventType.OnPostLoadAsset, path); }
@@ -257,8 +263,6 @@ namespace EFramework.Asset
 
                 try { callback?.Invoke(asset); }
                 catch (Exception e) { XLog.Panic(e); }
-
-                yield return 0;
             }
 
             /// <summary>

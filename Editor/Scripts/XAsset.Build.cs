@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.FileSystemGlobbing;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 using UnityEditor.Build.Reporting;
 using EFramework.Editor;
 using EFramework.Utility;
@@ -45,7 +46,7 @@ namespace EFramework.Asset.Editor
         /// 
         /// 构建产物：
         /// - `*.bundle`：资源包文件，格式为 `path_to_assets.bundle`
-        /// - `Manifest.md5`：资源包清单，格式为 `名称|MD5|大小`
+        /// - `Manifest.db`：资源包清单，格式为 `名称|MD5|大小`
         /// 
         /// 注意事项：
         /// - 场景文件(.unity)需要单独打包
@@ -88,8 +89,15 @@ namespace EFramework.Asset.Editor
                 [SerializeField] internal string[] include;
                 [SerializeField] internal string[] exclude;
                 [SerializeField] internal string[] stash;
+                [NonSerialized] SerializedObject serialized;
 
                 public Prefs() { foldout = false; }
+
+                public override void OnActivate(string searchContext, VisualElement rootElement)
+                {
+                    serialized = new SerializedObject(this);
+                    base.OnActivate(searchContext, rootElement);
+                }
 
                 /// <summary>
                 /// 在编辑器中绘制配置界面，方便用户可视化管理构建设置。
@@ -98,7 +106,8 @@ namespace EFramework.Asset.Editor
                 /// <param name="searchContext">搜索上下文。</param>
                 public override void OnVisualize(string searchContext)
                 {
-                    var serialized = new SerializedObject(this);
+                    serialized.Update();
+
                     var bundleMode = Target.GetBool(BundleMode, BundleModeDefault);
                     Color ocolor;
 
@@ -150,8 +159,8 @@ namespace EFramework.Asset.Editor
                 }
             }
 
-            internal static string stashFile { get => XFile.PathJoin(XEnv.ProjectPath, "Library", "AssetStash.txt"); }
-            internal static string dependencyFile { get => XFile.PathJoin(XEnv.ProjectPath, "Library", "AssetDependency.txt"); }
+            internal static string stashFile { get => XFile.PathJoin(XEnv.ProjectPath, "Library", "AssetStash.db"); }
+            internal static string dependencyFile { get => XFile.PathJoin(XEnv.ProjectPath, "Library", "AssetDependency.db"); }
             internal string buildDir;
 
             /// <summary>
@@ -560,12 +569,14 @@ namespace EFramework.Asset.Editor
                 for (var i = 0; i < differ.Modified.Count; i++)
                 {
                     var fi = differ.Modified[i];
+                    AddOffset(fi);
                     XLog.Debug("XAsset.Build.GenSummary: {0} has been modified.", fi.Name);
                 }
 
                 for (var i = 0; i < differ.Added.Count; i++)
                 {
                     var fi = differ.Added[i];
+                    AddOffset(fi);
                     XLog.Debug("XAsset.Build.GenSummary: {0} has been added.", fi.Name);
                 }
 
@@ -603,6 +614,44 @@ namespace EFramework.Asset.Editor
                 }
 
                 XLog.Debug("XAsset.Build.GenSummary: {0} asset(s) has been modified, {1} asset(s) has been added, {2} asset(s) has been deleted.", differ.Modified.Count, differ.Added.Count, differ.Deleted.Count);
+            }
+
+            /// <summary>
+            /// AddOffset 用于偏移 Bundle 文件。
+            /// </summary>
+            /// <param name="fi">Bundle 文件信息</param>
+            private void AddOffset(XMani.FileInfo fi)
+            {
+                var offsetFactor = XPrefs.GetInt(Prefs.OffsetFactor, Prefs.OffsetFactorDefault);
+                if (offsetFactor <= 0) return;
+
+                var src = XFile.PathJoin(buildDir, fi.Name);
+                var dst = src + ".tmp";
+                if (XFile.HasFile(dst)) XFile.DeleteFile(dst);
+
+                var prefix = new byte[28];
+                var buffer = new byte[1024];
+
+                using (var fs = new FileStream(src, FileMode.Open, FileAccess.Read))
+                {
+                    fs.Read(prefix, 0, prefix.Length);
+
+                    using var sw = new FileStream(dst, FileMode.Create, FileAccess.Write);
+                    var offsetCount = fi.Name.Length % offsetFactor + 1;
+                    for (var i = 0; i < offsetCount; i++) sw.Write(prefix, 0, prefix.Length);
+
+                    sw.Write(prefix, 0, prefix.Length);
+                    int bytesRead;
+                    while ((bytesRead = fs.Read(buffer, 0, buffer.Length)) > 0) sw.Write(buffer, 0, bytesRead);
+
+                    sw.Flush();
+                }
+
+                XFile.DeleteFile(src);
+                Directory.Move(dst, src);
+                XFile.DeleteFile(dst);
+                fi.Size = XFile.FileSize(src);
+                fi.MD5 = XFile.FileMD5(src);
             }
 
             /// <summary>
