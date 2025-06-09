@@ -180,7 +180,8 @@ namespace EFramework.Asset
                     {
                         XLog.Error("XAsset.Scene.LoadAsync: async load error: {0}", sname);
 
-                        // 加载错误时仍旧回调，业务层可根据 handler.Progress 判断是否加载成功
+                        // 加载错误时仍旧回调，业务层可根据 handler.Error 判断是否加载成功
+                        handler.Error = true;
                         handler.InvokePostload();
                     }
                 }

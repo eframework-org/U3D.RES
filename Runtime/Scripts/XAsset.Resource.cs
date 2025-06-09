@@ -196,16 +196,18 @@ namespace EFramework.Asset
                         Loading.Add(path, task);
                         yield return new WaitUntil(() => task.Operation.isDone);
                         Loading.Remove(path);
-                        handler.InvokePostload();
                     }
                     else
                     {
                         handler.Operation = task.Operation;
                         handler.InvokePreload();
                         yield return new WaitUntil(() => task.Operation.isDone);
-                        handler.InvokePostload();
                     }
                     asset = (task.Operation as ResourceRequest).asset;
+
+                    // 加载错误时仍旧回调，业务层可根据 handler.Error 判断是否加载成功
+                    handler.Error = asset == null;
+                    handler.InvokePostload();
                 }
                 else
                 {
@@ -253,7 +255,8 @@ namespace EFramework.Asset
                     {
                         XLog.Error("XAsset.Resource.LoadAsync: async load error: {0}", bundleName);
 
-                        // 加载错误时仍旧回调，业务层可根据 handler.Progress 判断是否加载成功
+                        // 加载错误时仍旧回调，业务层可根据 handler.Error 判断是否加载成功
+                        handler.Error = true;
                         handler.InvokePostload();
                     }
                 }

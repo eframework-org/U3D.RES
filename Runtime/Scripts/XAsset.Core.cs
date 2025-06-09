@@ -91,7 +91,7 @@ namespace EFramework.Asset
                     }
                     else
                     {
-                        if (Operation != null) return (doneCount + Operation.progress) / totalCount;
+                        if (Operation != null && !Operation.isDone) return (doneCount + Operation.progress) / totalCount;
                         else return doneCount / (float)totalCount;
                     }
                 }
@@ -133,9 +133,14 @@ namespace EFramework.Asset
             public object Current => null;
 
             /// <summary>
+            /// Error 表示是否发生错误中断。
+            /// </summary>
+            public bool Error { get; internal set; }
+
+            /// <summary>
             /// 检查资源是否已完成加载。
             /// </summary>
-            public bool IsDone { get => Operation != null && Operation.isDone; }
+            public bool IsDone { get => Error || (Operation != null && Operation.isDone); }
 
             /// <summary>
             /// 推进加载进程。作为协程迭代器，在加载未完成时返回true，
@@ -147,7 +152,7 @@ namespace EFramework.Asset
             /// 重置加载器状态，清空所有计数器和事件监听，
             /// 使其可以重新用于新的加载任务。
             /// </summary>
-            public void Reset() { doneCount = 0; totalCount = 0; OnPreload = null; OnPostload = null; Operation = null; }
+            public void Reset() { doneCount = 0; totalCount = 0; OnPreload = null; OnPostload = null; Operation = null; Error = false; }
 
             /// <summary>
             /// 触发预加载事件，并安全处理可能的异常。
