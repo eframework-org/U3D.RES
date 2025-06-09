@@ -1,14 +1,16 @@
 # 更新记录
 
-## [0.0.5] - 2025-06-07
+## [0.0.5] - 2025-06-09
 ### 变更
 - 优化加载资源和场景的错误处理逻辑
 - 公开 XAsset.Const.Extension 字段，使得业务层可以自定义拓展名
 
 ### 修复
 - 修复 XAsset 首选项编辑器在 Unity 2021 版本的数组序列化问题
+- 修复 XAsset.Handler.Progress 进度计算错误的问题
 
 ### 新增
+- 新增 XAsset.Handler.Error 字段表示是否发生错误中断
 - 新增 Asset/OffsetFactor 配置项用于对 Bundle 文件进行偏移计算
 - 新增 [DeepWiki](https://deepwiki.com) 智能索引，方便开发者快速查找相关文档
 
