@@ -12,23 +12,20 @@ using static EFramework.Asset.XAsset;
 [PrebuildSetup(typeof(TestXAssetBuild))]
 public class TestXAssetResource
 {
-    private GameObject testGameObject;
-
     [SetUp]
     public void Setup()
     {
-        Manifest.Main = null;
-        Manifest.Bundle = null;
+        Const.bundleMode = true;
         Manifest.Load();
-        testGameObject = new GameObject("TestObject");
     }
 
     [TearDown]
     public void Reset()
     {
-        GameObject.Destroy(testGameObject);
         AssetBundle.UnloadAllAssetBundles(true);
         Bundle.Loaded.Clear();
+        Const.bBundleMode = false;
+        Manifest.Load();
     }
 
     [TestCase(true)]
@@ -54,8 +51,10 @@ public class TestXAssetResource
         Assert.IsInstanceOf<GameObject>(asset2, "加载的资产应为GameObject类型。");
         Assert.DoesNotThrow(() => Resource.Unload(path));
 
+        LogAssert.ignoreFailingMessages = true;
         var notExistAsset = Resource.Load(notExistPath, typeof(GameObject));
         Assert.IsNull(notExistAsset, "加载的资产应为空。");
+        LogAssert.ignoreFailingMessages = false;
     }
 
     [UnityTest]
@@ -89,11 +88,13 @@ public class TestXAssetResource
             });
             yield return handler2;
 
+            LogAssert.ignoreFailingMessages = true;
             var handler3 = Resource.LoadAsync(notExistPath, typeof(GameObject), (asset) =>
             {
                 Assert.IsNull(asset, "加载的资产应为空。");
             });
             yield return handler3;
+            LogAssert.ignoreFailingMessages = false;
         }
     }
 }

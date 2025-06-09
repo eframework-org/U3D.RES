@@ -7,8 +7,9 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using System.Collections;
-using static EFramework.Asset.XAsset;
+using System.Text.RegularExpressions;
 using EFramework.Asset;
+using static EFramework.Asset.XAsset;
 
 [PrebuildSetup(typeof(TestXAssetBuild))]
 public class TestXAssetBundle
@@ -74,10 +75,13 @@ public class TestXAssetBundle
         var bundle = Bundle.Load(bundleName);
 
         // 测试加载不存在的bundle
+        LogAssert.Expect(LogType.Error, new Regex(".*Unable to open archive.*"));
+        LogAssert.Expect(LogType.Error, new Regex(".*Failed to read data for the AssetBundle.*"));
+        LogAssert.Expect(LogType.Error, new Regex(".*sync load main-ab error.*"));
         var noneBundleName = "non_existent_bundle.bundle";
         var noneBundle = Bundle.Load(noneBundleName);
 
-        // Assert
+        // Assert 
         Assert.IsNotNull(bundle, "加载的bundle不应为空。");
         Assert.AreEqual(bundleName, bundle.Name, "加载的bundle名称应匹配。");
         Assert.IsNull(noneBundle, "加载不存在的bundle应返回null。");

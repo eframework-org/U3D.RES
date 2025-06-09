@@ -27,6 +27,9 @@ public class TestXAssetObject
     public void Cleanup()
     {
         AssetBundle.UnloadAllAssetBundles(true);
+        Bundle.Loaded.Clear();
+        Const.bBundleMode = false;
+        Manifest.Load();
     }
 
     [SetUp]

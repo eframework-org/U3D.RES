@@ -190,21 +190,31 @@ namespace EFramework.Asset
                     if (!Loading.TryGetValue(sname, out var task))
                     {
                         var req = SceneManager.LoadSceneAsync(sname, loadMode);
-                        task = new Task() { Name = sname, Operation = req };
-                        handler.Operation = req;
-                        handler.InvokePreload();
-                        Loading.Add(sname, task);
-                        yield return new WaitUntil(() => task.Operation.isDone);
-                        Loading.Remove(sname);
-                        XLog.Info("XAsset.Scene.LoadAsync: finish to load {0}, cached-ab: {1}", sname, Bundle.Loaded.Count);
-                        handler.InvokePostload();
+                        if (req != null)
+                        {
+                            task = new Task() { Name = sname, Operation = req };
+                            handler.Operation = req;
+                            handler.InvokePreload();
+                            Loading.Add(sname, task);
+                            yield return new WaitUntil(() => task.Operation.isDone);
+                            Loading.Remove(sname);
+                            handler.InvokePostload();
+                        }
+                        else
+                        {
+                            // 等待下一帧进行错误处理，避免业务层未获取到 handler 的实例
+                            yield return null;
+
+                            // 加载错误时仍旧回调，业务层可根据 handler.Error 判断是否加载成功
+                            handler.Error = true;
+                            handler.InvokePostload();
+                        }
                     }
                     else
                     {
                         handler.Operation = task.Operation;
                         handler.InvokePreload();
                         yield return new WaitUntil(() => task.Operation.isDone);
-                        XLog.Info("XAsset.Scene.LoadAsync: finish to load {0}, cached-ab: {1}", sname, Bundle.Loaded.Count);
                         handler.InvokePostload();
                     }
                 }
