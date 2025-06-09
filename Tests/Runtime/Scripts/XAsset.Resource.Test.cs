@@ -32,6 +32,8 @@ public class TestXAssetResource
     [TestCase(false)]
     public void Load(bool bundleMode)
     {
+        LogAssert.ignoreFailingMessages = true;
+
         Const.bundleMode = bundleMode;
         // Arrange
         var path = "Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube";
@@ -51,15 +53,17 @@ public class TestXAssetResource
         Assert.IsInstanceOf<GameObject>(asset2, "加载的资产应为GameObject类型。");
         Assert.DoesNotThrow(() => Resource.Unload(path));
 
-        LogAssert.ignoreFailingMessages = true;
         var notExistAsset = Resource.Load(notExistPath, typeof(GameObject));
         Assert.IsNull(notExistAsset, "加载的资产应为空。");
+
         LogAssert.ignoreFailingMessages = false;
     }
 
     [UnityTest]
     public IEnumerator LoadAsync()
     {
+        LogAssert.ignoreFailingMessages = true;
+
         bool[] bundleModes = { true, false };
         foreach (var bundleMode in bundleModes)
         {
@@ -88,14 +92,14 @@ public class TestXAssetResource
             });
             yield return handler2;
 
-            LogAssert.ignoreFailingMessages = true;
             var handler3 = Resource.LoadAsync(notExistPath, typeof(GameObject), (asset) =>
             {
                 Assert.IsNull(asset, "加载的资产应为空。");
             });
             yield return handler3;
-            LogAssert.ignoreFailingMessages = false;
         }
+
+        LogAssert.ignoreFailingMessages = false;
     }
 }
 #endif

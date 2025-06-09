@@ -32,6 +32,8 @@ public class TestXAssetCore
     [UnityTest]
     public IEnumerator Handler()
     {
+        LogAssert.ignoreFailingMessages = true;
+
         bool[] bundleModes = { true, false };
         foreach (var bundleMode in bundleModes)
         {
@@ -51,11 +53,9 @@ public class TestXAssetCore
             yield return handler;
             Assert.IsTrue(handler.IsDone, "当Operation完成时，IsDone应为true。");
 
-            LogAssert.ignoreFailingMessages = true;
             handler = XAsset.Resource.LoadAsync("NotExist", typeof(GameObject));
             yield return handler;
             Assert.IsTrue(handler.Error, "当加载不存在的资源时，Error应为true。");
-            LogAssert.ignoreFailingMessages = false;
 
             // 测试MoveNext
             handler = XAsset.Resource.LoadAsync("Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube", typeof(GameObject));
@@ -84,6 +84,8 @@ public class TestXAssetCore
             Assert.IsFalse(preloadWasCalled, "OnPreload事件不应被调用。");
             Assert.IsFalse(postloadWasCalled, "OnPostload事件不应被调用。");
         }
+
+        LogAssert.ignoreFailingMessages = false;
     }
 }
 #endif
