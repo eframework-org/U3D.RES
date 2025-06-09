@@ -13,15 +13,15 @@ using static EFramework.Asset.XAsset;
 [PrebuildSetup(typeof(TestXAssetBuild))]
 public class TestXAssetCore
 {
-    [SetUp]
-    public void Setup()
+    [OneTimeSetUp]
+    public void Init()
     {
         Const.bundleMode = true;
         Manifest.Load();
     }
 
-    [TearDown]
-    public void Reset()
+    [OneTimeTearDown]
+    public void Cleanup()
     {
         AssetBundle.UnloadAllAssetBundles(true);
         Bundle.Loaded.Clear();

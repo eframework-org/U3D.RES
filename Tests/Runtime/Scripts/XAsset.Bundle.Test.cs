@@ -26,6 +26,8 @@ public class TestXAssetBundle
     {
         AssetBundle.UnloadAllAssetBundles(true);
         Bundle.Loaded.Clear();
+        Const.bBundleMode = false;
+        Manifest.Load();
     }
 
     [Test]

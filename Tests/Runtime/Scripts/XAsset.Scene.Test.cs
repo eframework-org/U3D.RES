@@ -19,8 +19,8 @@ public class TestXAssetScene
 {
     internal const string TestScene = "Packages/org.eframework.u3d.res/Tests/Runtime/Scenes/TestScene";
 
-    [SetUp]
-    public void Setup()
+    [OneTimeSetUp]
+    public void Init()
     {
         Const.bundleMode = true;
         Manifest.Load();
@@ -36,8 +36,8 @@ public class TestXAssetScene
         EditorBuildSettings.scenes = scenes.ToArray();
     }
 
-    [TearDown]
-    public void Reset()
+    [OneTimeTearDown]
+    public void Cleanup()
     {
         AssetBundle.UnloadAllAssetBundles(true);
         Bundle.Loaded.Clear();
