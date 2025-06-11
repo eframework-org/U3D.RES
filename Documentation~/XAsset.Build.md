@@ -17,7 +17,7 @@ XAsset.Build 提供了资源的构建工作流，支持资源的依赖分析及�
 
 | 配置项 | 配置键 | 默认值 | 功能说明 |
 |--------|--------|--------|----------|
-| 输出路径 | `Asset/Build/Output@Editor` | `Builds/Patch/Assets` | 资源包的输出路径 |
+| 输出路径 | `Asset/Build/Output@Editor` | `Builds/Patch/Assets/${Env.Channel}/${Env.Platform}` | 资源包的输出路径 |
 | 包含路径 | `Asset/Build/Include@Editor` | `["Assets/Resources/Bundle", "Assets/Resources/Internal/Prefab", "Assets/Scenes/**/*.unity"]` | 需要打包的资源路径 |
 | 排除路径 | `Asset/Build/Exclude@Editor` | `[]` | 需要排除的资源路径 |
 | 暂存路径 | `Asset/Build/Stash@Editor` | `["Assets/Resources/Bundle"]` | 需要暂存的资源路径 |

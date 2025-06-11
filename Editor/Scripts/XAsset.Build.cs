@@ -32,7 +32,7 @@ namespace EFramework.Asset.Editor
         /// 1. 首选项配置
         /// 
         /// 配置项说明：
-        /// - 输出路径：`Asset/Build/Output@Editor`，默认值为 `Builds/Patch/Assets`
+        /// - 输出路径：`Asset/Build/Output@Editor`，默认值为 `Builds/Patch/Assets/${Env.Channel}/${Env.Platform}`
         /// - 包含路径：`Asset/Build/Include@Editor`，默认值为 `["Assets/Resources/Bundle", "Assets/Resources/Internal/Prefab", "Assets/Scenes/**/*.unity"]`
         /// - 排除路径：`Asset/Build/Exclude@Editor`，默认值为 `[]`
         /// - 暂存路径：`Asset/Build/Stash@Editor`，默认值为 `["Assets/Resources/Bundle"]`
@@ -69,7 +69,7 @@ namespace EFramework.Asset.Editor
             {
                 // 输出路径配置
                 public const string Output = "Asset/Build/Output@Editor";
-                public const string OutputDefault = "Builds/Patch/Assets";
+                public const string OutputDefault = "Builds/Patch/Assets/${Env.Channel}/${Env.Platform}";
 
                 // 资源路径配置
                 public const string Include = "Asset/Build/Include@Editor";
@@ -185,11 +185,9 @@ namespace EFramework.Asset.Editor
             /// <param name="report">构建报告对象，用于记录构建过程中的信息</param>
             public override void Preprocess(XEditor.Tasks.Report report)
             {
-                var output = XPrefs.GetString(Prefs.Output, Prefs.OutputDefault);
-                if (string.IsNullOrEmpty(output)) throw new ArgumentNullException("Prefs.Build.Output is empty.");
-
-                buildDir = XFile.PathJoin(output, XPrefs.GetString(XEnv.Prefs.Channel, XEnv.Prefs.ChannelDefault), XEnv.Platform.ToString());
-                if (XFile.HasDirectory(buildDir) == false) XFile.CreateDirectory(buildDir);
+                buildDir = XFile.NormalizePath(XPrefs.GetString(Prefs.Output, Prefs.OutputDefault).Eval(XEnv.Vars));
+                if (string.IsNullOrEmpty(buildDir)) throw new ArgumentNullException("Prefs.Build.Output is empty.");
+                if (!XFile.HasDirectory(buildDir)) XFile.CreateDirectory(buildDir);
 
                 var maniFile = XFile.PathJoin(buildDir, XMani.Default);
                 var tmpManiFile = maniFile + ".tmp";
@@ -679,7 +677,7 @@ namespace EFramework.Asset.Editor
 
                 if (XPrefs.GetBool(Prefs.StreamingAssets, Prefs.StreamingAssetsDefault))
                 {
-                    var srcDir = XFile.PathJoin(XPrefs.GetString(Prefs.Output, Prefs.OutputDefault), XPrefs.GetString(XEnv.Prefs.Channel, XEnv.Prefs.ChannelDefault), XEnv.Platform.ToString());
+                    var srcDir = XFile.NormalizePath(XPrefs.GetString(Prefs.Output, Prefs.OutputDefault).Eval(XEnv.Vars));
                     if (!XFile.HasDirectory(srcDir))
                     {
                         XLog.Warn("XAsset.Build.OnPreprocessBuild: ignore to streaming asset(s) because of non-exists dir: {0}.", srcDir);

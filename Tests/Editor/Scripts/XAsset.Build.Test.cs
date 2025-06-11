@@ -34,7 +34,7 @@ public class TestXAssetBuild : IPrebuildSetup
         XPrefs.Asset.Set(Build.Prefs.Include, include);
         XPrefs.Asset.Set(Build.Prefs.Exclude, new string[] { });
 
-        var buildDir = XFile.PathJoin(XPrefs.GetString(Build.Prefs.Output, Build.Prefs.OutputDefault), XPrefs.GetString(XEnv.Prefs.Channel, XEnv.Prefs.ChannelDefault), XEnv.Platform.ToString());
+        var buildDir = XFile.NormalizePath(XPrefs.GetString(Build.Prefs.Output, Build.Prefs.OutputDefault).Eval(XEnv.Vars));
         var manifestFile = XFile.PathJoin(buildDir, XMani.Default);
 
         var report = XEditor.Tasks.Execute(handler);

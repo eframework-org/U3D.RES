@@ -212,7 +212,7 @@ namespace EFramework.Asset.Editor
             /// <param name="report">构建报告对象，用于记录处理过程中的信息</param>
             public override void Process(XEditor.Tasks.Report report)
             {
-                var root = XFile.PathJoin(XPrefs.GetString(Prefs.Output, Prefs.OutputDefault), XEnv.Channel, XEnv.Platform.ToString());
+                var root = XFile.NormalizePath(XPrefs.GetString(Prefs.Output, Prefs.OutputDefault).Eval(XEnv.Vars));
 
                 var remoteMani = new XMani.Manifest();
                 var tempFile = Path.GetTempFileName();
