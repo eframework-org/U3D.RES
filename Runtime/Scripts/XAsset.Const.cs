@@ -89,18 +89,23 @@ namespace EFramework.Asset
         {
             #region 运行配置
             /// <summary>
-            /// Bundle模式的初始化标记
+            /// Manifest 表示主 AssetBundleManifest 的文件名。
+            /// </summary>
+            public static string Manifest = XEnv.Platform.ToString();
+
+            /// <summary>
+            /// Bundle 模式的初始化标记。
             /// </summary>
             internal static bool bBundleMode;
 
             /// <summary>
-            /// Bundle模式的当前状态
+            /// Bundle 模式的当前状态。
             /// </summary>
             internal static bool bundleMode;
 
             /// <summary>
-            /// 获取资源系统当前是否运行在Bundle模式下。Bundle模式下会从打包的资源文件中加载资源，
-            /// 而不是直接从Assets目录加载。这个设置会受到编辑器状态和模拟模式的影响。
+            /// 获取资源系统当前是否运行在 Bundle 模式下。Bundle 模式下会从打包的资源文件中加载资源，
+            /// 而不是直接从 Assets 目录加载。这个设置会受到编辑器状态和模拟模式的影响。
             /// </summary>
             public static bool BundleMode
             {
@@ -127,7 +132,7 @@ namespace EFramework.Asset
 
             /// <summary>
             /// 获取是否启用了引用计数模式。在引用计数模式下，系统会跟踪资源的使用情况，
-            /// 只有当资源不再被任何对象引用时才会被卸载。这个模式需要Bundle模式开启才能生效。
+            /// 只有当资源不再被任何对象引用时才会被卸载。这个模式需要 Bundle 模式开启才能生效。
             /// </summary>
             public static bool ReferMode
             {
@@ -154,7 +159,7 @@ namespace EFramework.Asset
 
             /// <summary>
             /// 获取是否启用了调试模式。调试模式下会输出详细的日志信息，
-            /// 帮助开发者追踪资源加载和卸载的过程。这个模式同样需要Bundle模式开启才能生效。
+            /// 帮助开发者追踪资源加载和卸载的过程。这个模式同样需要 Bundle 模式开启才能生效。
             /// </summary>
             public static bool DebugMode
             {

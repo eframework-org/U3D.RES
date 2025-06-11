@@ -71,12 +71,12 @@ namespace EFramework.Asset
                     }
                     catch (Exception e) { XLog.Panic(e, "XAsset.Manifest.Load: unload manifest failed."); }
 
-                    var file = XFile.PathJoin(Const.LocalPath, XEnv.Platform.ToString());
+                    var file = XFile.PathJoin(Const.LocalPath, Const.Manifest);
                     if (XFile.HasFile(file))
                     {
                         try
                         {
-                            Bundle = AssetBundle.LoadFromFile(file, 0, Const.GetOffset(XEnv.Platform.ToString()));
+                            Bundle = AssetBundle.LoadFromFile(file, 0, Const.GetOffset(Const.Manifest));
                             Main = Bundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
                             XLog.Notice("XAsset.Manifest.Load: load <a href=\"file:///{0}\">{1}</a> succeeded.", file, file);
                         }
