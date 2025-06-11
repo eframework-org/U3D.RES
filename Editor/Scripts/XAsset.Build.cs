@@ -38,6 +38,7 @@ namespace EFramework.Asset.Editor
         /// - 暂存路径：`Asset/Build/Stash@Editor`，默认值为 `["Assets/Resources/Bundle"]`
         /// - 合并材质：`Asset/Build/Merge/Material@Editor`，默认值为 `true`
         /// - 合并单包：`Asset/Build/Merge/Single@Editor`，默认值为 `false`
+        /// - 拷贝资源：`Asset/Build/Streaming/Assets@Editor`，默认值为 `true`
         /// 
         /// 2. 自动化流程
         /// 
@@ -82,6 +83,10 @@ namespace EFramework.Asset.Editor
                 public const bool MergeMaterialDefault = true;
                 public const string MergeSingle = "Asset/Build/Merge/Single@Editor";
                 public const bool MergeSingleDefault = false;
+
+                // 资源拷贝配置
+                public const string StreamingAssets = "Asset/Build/Streaming/Assets";
+                public const bool StreamingAssetsDefault = true;
 
                 public override string Section => "Asset";
                 public override int Priority => 101;
@@ -131,6 +136,9 @@ namespace EFramework.Asset.Editor
 
                         Title("Single", "Merge Single Raw Bundle into Main Bundle.");
                         Target.Set(MergeSingle, EditorGUILayout.Toggle(Target.GetBool(MergeSingle, MergeSingleDefault)));
+
+                        Title("Streaming", "Copy Assets Patch into Streaming Assets.", 70);
+                        Target.Set(StreamingAssets, EditorGUILayout.Toggle(Target.GetBool(StreamingAssets, StreamingAssetsDefault)));
                         EditorGUILayout.EndHorizontal();
 
                         EditorGUILayout.BeginHorizontal();
@@ -669,36 +677,38 @@ namespace EFramework.Asset.Editor
 
                 Stash();
 
-                var srcDir = XFile.PathJoin(XPrefs.GetString(Prefs.Output, Prefs.OutputDefault), XPrefs.GetString(XEnv.Prefs.Channel, XEnv.Prefs.ChannelDefault), XEnv.Platform.ToString());
-                if (!XFile.HasDirectory(srcDir))
+                if (XPrefs.GetBool(Prefs.StreamingAssets, Prefs.StreamingAssetsDefault))
                 {
-                    XLog.Warn("XAsset.Build.OnPreprocessBuild: ignore to copy asset(s) because of non-exists dir: {0}.", srcDir);
-                    return;
-                }
-                else
-                {
-                    if (XEnv.Platform == XEnv.PlatformType.Android || XEnv.Platform == XEnv.PlatformType.iOS)
+                    var srcDir = XFile.PathJoin(XPrefs.GetString(Prefs.Output, Prefs.OutputDefault), XPrefs.GetString(XEnv.Prefs.Channel, XEnv.Prefs.ChannelDefault), XEnv.Platform.ToString());
+                    if (!XFile.HasDirectory(srcDir))
                     {
-                        var dstDir = XFile.PathJoin(XEnv.ProjectPath, "Temp", XPrefs.GetString(Prefs.LocalUri, Prefs.LocalUriDefault));
-                        var srcZip = XFile.PathJoin(XEnv.ProjectPath, "Temp", XPrefs.GetString(Prefs.AssetUri, Prefs.AssetUriDefault));
-                        var dstZip = XFile.PathJoin(XEnv.AssetPath, XPrefs.GetString(Prefs.AssetUri, Prefs.AssetUriDefault));
-
-                        if (XFile.HasDirectory(dstDir)) XFile.DeleteDirectory(dstDir);
-                        XFile.CopyDirectory(srcDir, dstDir, ".manifest");
-                        XEditor.Utility.ZipDirectory(dstDir, srcZip);
-                        XFile.CopyFile(srcZip, dstZip);
-
-                        AssetDatabase.Refresh();
+                        XLog.Warn("XAsset.Build.OnPreprocessBuild: ignore to streaming asset(s) because of non-exists dir: {0}.", srcDir);
                     }
                     else
                     {
-                        XEditor.Event.Decode<BuildReport>(out var report, args);
-                        var outputDir = Path.GetDirectoryName(report.summary.outputPath);
-                        var outputName = Path.GetFileNameWithoutExtension(report.summary.outputPath);
-                        var dstDir = XFile.PathJoin(outputDir, outputName + "_Data", "Local", XPrefs.GetString(Prefs.LocalUri, Prefs.LocalUriDefault));
-                        XFile.CopyDirectory(srcDir, dstDir, ".manifest");
+                        if (XEnv.Platform == XEnv.PlatformType.Android || XEnv.Platform == XEnv.PlatformType.iOS)
+                        {
+                            var dstDir = XFile.PathJoin(XEnv.ProjectPath, "Temp", XPrefs.GetString(Prefs.LocalUri, Prefs.LocalUriDefault));
+                            var srcZip = XFile.PathJoin(XEnv.ProjectPath, "Temp", XPrefs.GetString(Prefs.AssetUri, Prefs.AssetUriDefault));
+                            var dstZip = XFile.PathJoin(XEnv.AssetPath, XPrefs.GetString(Prefs.AssetUri, Prefs.AssetUriDefault));
+
+                            if (XFile.HasDirectory(dstDir)) XFile.DeleteDirectory(dstDir);
+                            XFile.CopyDirectory(srcDir, dstDir, ".manifest");
+                            XEditor.Utility.ZipDirectory(dstDir, srcZip);
+                            XFile.CopyFile(srcZip, dstZip);
+
+                            AssetDatabase.Refresh();
+                        }
+                        else
+                        {
+                            XEditor.Event.Decode<BuildReport>(out var report, args);
+                            var outputDir = Path.GetDirectoryName(report.summary.outputPath);
+                            var outputName = Path.GetFileNameWithoutExtension(report.summary.outputPath);
+                            var dstDir = XFile.PathJoin(outputDir, outputName + "_Data", "Local", XPrefs.GetString(Prefs.LocalUri, Prefs.LocalUriDefault));
+                            XFile.CopyDirectory(srcDir, dstDir, ".manifest");
+                        }
+                        XLog.Debug("XAsset.Build.OnPreprocessBuild: streaming asset(s) from <a href=\"file:///{0}\">{1}</a>.", Path.GetFullPath(srcDir), srcDir);
                     }
-                    XLog.Debug("XAsset.Build.OnPreprocessBuild: copied asset(s) from <a href=\"file:///{0}\">{1}</a>.", Path.GetFullPath(srcDir), srcDir);
                 }
             }
 
@@ -717,13 +727,16 @@ namespace EFramework.Asset.Editor
 
                 Restore();
 
-                if (XEnv.Platform == XEnv.PlatformType.Android)
+                if (XPrefs.GetBool(Prefs.StreamingAssets, Prefs.StreamingAssetsDefault))
                 {
-                    var dstZip = XFile.PathJoin(XEnv.AssetPath, "Patch@Assets.zip");
-                    if (XFile.HasFile(dstZip))
+                    if (XEnv.Platform == XEnv.PlatformType.Android)
                     {
-                        XFile.DeleteFile(dstZip);
-                        AssetDatabase.Refresh();
+                        var dstZip = XFile.PathJoin(XEnv.AssetPath, "Patch@Assets.zip");
+                        if (XFile.HasFile(dstZip))
+                        {
+                            XFile.DeleteFile(dstZip);
+                            AssetDatabase.Refresh();
+                        }
                     }
                 }
             }

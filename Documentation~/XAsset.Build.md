@@ -23,6 +23,7 @@ XAsset.Build 提供了资源的构建工作流，支持资源的依赖分析及�
 | 暂存路径 | `Asset/Build/Stash@Editor` | `["Assets/Resources/Bundle"]` | 需要暂存的资源路径 |
 | 合并材质 | `Asset/Build/Merge/Material@Editor` | `true` | 合并材质选项 |
 | 合并单包 | `Asset/Build/Merge/Single@Editor` | `false` | 合并单包选项 |
+| 拷贝资源 | `Asset/Build/Streaming/Assets@Editor` | `true` | 构建时拷贝资源至 StreamingAssets |
 
 关联配置项：`Asset/OffsetFactor`、`Asset/AssetUri`、`Asset/LocalUri`
 
