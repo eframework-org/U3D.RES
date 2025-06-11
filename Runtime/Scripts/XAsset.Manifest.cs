@@ -78,7 +78,7 @@ namespace EFramework.Asset
                         {
                             Bundle = AssetBundle.LoadFromFile(file, 0, Const.GetOffset(XEnv.Platform.ToString()));
                             Main = Bundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
-                            XLog.Notice("XAsset.Manifest.Load: load <a href=\"file:///{0}\">{1}</a> succeed.", file, file);
+                            XLog.Notice("XAsset.Manifest.Load: load <a href=\"file:///{0}\">{1}</a> succeeded.", file, file);
                         }
                         catch (Exception e) { XLog.Panic(e, "XAsset.Manifest.Load: load <a href=\"file:///{0}\">{1}</a> failed.".Format(file, file)); }
                     }
