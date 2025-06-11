@@ -1,5 +1,13 @@
 # 更新记录
 
+## [0.0.6] - 2025-06-11
+### 变更
+- 修改 Asset/Build/Output@Editor 的默认值为 Builds/Patch/Assets/${Env.Channel}/${Env.Platform}
+- 新增 XAsset.Const.Manifest 字段，使得业务层可以自定义主 AssetBundleManifest 的文件名
+
+### 新增
+- 新增 Asset/Build/Streaming/Assets 配置项控制构建时拷贝资源至 StreamingAssets
+
 ## [0.0.5] - 2025-06-09
 ### 变更
 - 优化加载资源和场景的错误处理逻辑
