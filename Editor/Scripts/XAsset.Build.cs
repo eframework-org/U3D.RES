@@ -505,7 +505,7 @@ namespace EFramework.Asset.Editor
                 // write ab manifest file;
                 var manifestMD5 = XFile.FileMD5(abManifestFilePath);
                 var manifestSize = XFile.FileSize(abManifestFilePath);
-                sw.WriteLine(XEnv.Platform.ToString() + "|" + manifestMD5 + "|" + manifestSize);
+                sw.WriteLine(Const.Manifest + "|" + manifestMD5 + "|" + manifestSize);
                 var lines = File.ReadAllLines(manifestFilePath);
                 var abs = new List<string>();
                 for (var i = 0; i < lines.Length; i++)
