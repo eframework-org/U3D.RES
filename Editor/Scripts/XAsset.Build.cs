@@ -491,7 +491,7 @@ namespace EFramework.Asset.Editor
             /// <param name="_">构建报告对象，用于记录构建过程中的信息</param>
             private void GenManifest(XEditor.Tasks.Report _)
             {
-                var abManifestFilePath = XFile.PathJoin(buildDir, XEnv.Platform.ToString());
+                var abManifestFilePath = XFile.PathJoin(buildDir, Const.Manifest);
                 var manifestFilePath = abManifestFilePath + ".manifest";
                 var assetManifestFilePath = XFile.PathJoin(buildDir, XMani.Default);
                 if (XFile.HasFile(assetManifestFilePath)) XFile.DeleteFile(assetManifestFilePath);
