@@ -75,16 +75,12 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 创建新的资源包装器，并将其加入到全局跟踪列表中。
-            /// </summary>
-            internal Object() { Loaded.Add(this); }
-
-            /// <summary>
             /// Unity 对象唤醒时的初始化，设置初始引用计数并加载对应的资源包。
             /// 这通常发生在预制体实例化或场景加载时。
             /// </summary>
             internal void Awake()
             {
+                Loaded.Add(this); // 加入到全局跟踪列表中
                 Count = 1;
                 var bundle = Bundle.Find(Source);
                 bundle?.Obtain(Const.DebugMode ? $"[XAsset.Object.Awake: {Label}]" : "");
