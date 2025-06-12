@@ -1,5 +1,12 @@
 # 更新记录
 
+## [0.0.7] - 2025-06-12
+### 变更
+- 公开 XAsset.Build 和 XAsset.Publish 的首选项字段访问
+
+### 修复
+- 修复 XAsset.Object 引发的 Untiy Player Crash（CG -> MarkAllDependencies）
+
 ## [0.0.6] - 2025-06-11
 ### 变更
 - 修改 Asset/Build/Output@Editor 的默认值为 Builds/Patch/Assets/${Env.Channel}/${Env.Platform}
