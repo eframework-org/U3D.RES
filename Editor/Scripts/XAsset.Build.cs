@@ -57,7 +57,7 @@ namespace EFramework.Asset.Editor
         /// 更多信息请参考模块文档。
         /// </remarks>
         [XEditor.Tasks.Worker(name: "Build Assets", group: "Asset", priority: 101)]
-        internal class Build : XEditor.Tasks.Worker,
+        public class Build : XEditor.Tasks.Worker,
             XEditor.Event.Internal.OnPreprocessBuild,
             XEditor.Event.Internal.OnPostprocessBuild
         {
@@ -65,7 +65,7 @@ namespace EFramework.Asset.Editor
             /// 构建配置管理器，提供资源打包相关的配置项和界面化设置功能。
             /// 包含输出路径、资源包含/排除规则、资源暂存设置以及合并选项等配置。
             /// </summary>
-            internal class Prefs : Asset.XAsset.Prefs
+            public class Prefs : Asset.XAsset.Prefs
             {
                 // 输出路径配置
                 public const string Output = "Asset/Build/Output@Editor";
@@ -268,7 +268,7 @@ namespace EFramework.Asset.Editor
             /// </code>
             /// </remarks>
             /// <returns>资源依赖关系字典，键为Bundle名称，值为资源路径列表</returns>
-            internal static Dictionary<string, List<string>> GenDependency()
+            public static Dictionary<string, List<string>> GenDependency()
             {
                 var buildBundles = new Dictionary<string, List<string>>();
                 var buildTime = XTime.GetTimestamp();
@@ -757,7 +757,7 @@ namespace EFramework.Asset.Editor
             /// - 刷新资源数据库
             /// </code>
             /// </remarks>
-            internal static void Stash()
+            public static void Stash()
             {
                 try
                 {
@@ -818,7 +818,7 @@ namespace EFramework.Asset.Editor
             /// </code>
             /// </remarks>
             [InitializeOnLoadMethod]
-            internal static void Restore()
+            public static void Restore()
             {
                 if (XFile.HasFile(stashFile))
                 {

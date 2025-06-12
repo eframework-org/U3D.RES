@@ -44,12 +44,12 @@ namespace EFramework.Asset.Editor
         /// 更多信息请参考模块文档。
         /// </remarks>
         [XEditor.Tasks.Worker(name: "Publish Assets", group: "Asset", runasync: true, priority: 102)]
-        internal class Publish : XEditor.Oss
+        public class Publish : XEditor.Oss
         {
             /// <summary>
             /// 发布流程首选项设置类，包含 OSS 发布相关的配置选项。
             /// </summary>
-            internal class Prefs : Build.Prefs
+            public class Prefs : Build.Prefs
             {
                 /// <summary>
                 /// OSS 主机的键名。
