@@ -4,7 +4,7 @@
 [![Downloads](https://img.shields.io/npm/dm/org.eframework.u3d.res)](https://www.npmjs.com/package/org.eframework.u3d.res)
 [![DeepWiki](https://img.shields.io/badge/DeepWiki-Explore-blue)](https://deepwiki.com/eframework-org/U3D.RES)
 
-Xres.Publish 实现了资源包的发布工作流，用于将打包好的资源发布至对象存储服务（OSS）中。
+XAsset.Publish 实现了资源包的发布工作流，用于将打包好的资源发布至对象存储服务（OSS）中。
 
 ## 功能特性
 
