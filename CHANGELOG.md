@@ -1,5 +1,12 @@
 # 更新记录
 
+## [0.0.8] - 2025-06-17
+### 变更
+- 移除 XAsset.Utility.Progress 函数（该指标无实际意义）
+
+### 修复
+- 修复 XAsset.Bundle 同步和异步并发加载引发的 Bundle 加载失败问题（same files is already loaded.）
+
 ## [0.0.7] - 2025-06-12
 ### 变更
 - 公开 XAsset.Build 和 XAsset.Publish 的首选项字段访问
