@@ -163,9 +163,21 @@ namespace EFramework.Asset
                 internal string Name;
 
                 /// <summary>
-                /// Unity 的异步加载操作对象。
+                /// 加载的 AssetBundle 对象。
                 /// </summary>
-                internal AssetBundleCreateRequest Operation;
+                internal AssetBundle Bundle;
+
+                /// <summary>
+                /// IsDone 表示是否完成加载。
+                /// </summary>
+                internal bool IsDone;
+
+                /// <summary>
+                /// OnPostload 用于监听加载完成事件。
+                /// </summary>
+                internal event Action OnPostload;
+
+                internal void InvokePostOnLoad() { OnPostload?.Invoke(); }
             }
 
             /// <summary>
@@ -196,21 +208,48 @@ namespace EFramework.Asset
                             var dep = deps[i];
                             if (!Loaded.TryGetValue(dep, out var tmp))
                             {
-                                var path = XFile.PathJoin(Const.LocalPath, dep);
-                                var bundle = AssetBundle.LoadFromFile(path, 0, Const.GetOffset(dep));
-                                if (bundle == null)
+                                if (!Loading.TryGetValue(dep, out var task))
                                 {
-                                    XLog.Error("XAsset.Bundle.Load: sync load dep-ab error: {0}", dep);
-                                    breakDep = i;
-                                    break;
+                                    task = new Task() { Name = dep };
+                                    Loading.Add(dep, task);
+
+                                    var path = XFile.PathJoin(Const.LocalPath, dep);
+                                    var bundle = AssetBundle.LoadFromFile(path, 0, Const.GetOffset(dep));
+                                    if (bundle == null)
+                                    {
+                                        XLog.Error("XAsset.Bundle.Load: sync load dep-ab error: {0}", dep);
+                                        breakDep = i;
+
+                                        task.Bundle = null;
+                                        task.IsDone = true;
+                                        task.InvokePostOnLoad();
+                                        Loading.Remove(dep);
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        tmp = new Bundle() { Name = dep, Source = bundle, Count = 1 };
+                                        Loaded.Add(dep, tmp);
+
+                                        task.Bundle = bundle;
+                                        task.IsDone = true;
+                                        task.InvokePostOnLoad();
+                                        Loading.Remove(dep);
+                                    }
                                 }
                                 else
                                 {
-                                    tmp = new Bundle() { Name = dep, Source = bundle, Count = 1 };
-                                    Loaded.Add(dep, tmp);
+                                    // 异步加载完成的回调
+                                    task.OnPostload += () =>
+                                    {
+                                        if (Loaded.TryGetValue(task.Name, out var tmp))
+                                        {
+                                            tmp.Obtain(Const.DebugMode ? $"[Sync.Load.1: {name}]" : "");
+                                        }
+                                    };
                                 }
                             }
-                            else tmp.Obtain(Const.DebugMode ? $"[Sync.Load.1: {name}]" : "");
+                            else tmp.Obtain(Const.DebugMode ? $"[Sync.Load.2: {name}]" : "");
                         }
 
                         // 如果有任何一个依赖加载失败，则解除对已加载依赖的引用
@@ -221,7 +260,7 @@ namespace EFramework.Asset
                                 var dep = deps[i];
                                 if (Loaded.TryGetValue(dep, out var tmp))
                                 {
-                                    tmp.Release(Const.DebugMode ? $"[Sync.Load.2: {name}]" : "");
+                                    tmp.Release(Const.DebugMode ? $"[Sync.Load.3: {name}]" : "");
                                 }
                             }
 
@@ -243,7 +282,7 @@ namespace EFramework.Asset
                                 var dep = deps[i];
                                 if (Loaded.TryGetValue(dep, out var tmp))
                                 {
-                                    tmp.Release(Const.DebugMode ? $"[Sync.Load.3: {name}]" : "");
+                                    tmp.Release(Const.DebugMode ? $"[Sync.Load.4: {name}]" : "");
                                 }
                             }
                         }
@@ -259,7 +298,7 @@ namespace EFramework.Asset
                 }
                 else
                 {
-                    info.Obtain(Const.DebugMode ? $"[Sync.Load.4: {name}]" : "");
+                    info.Obtain(Const.DebugMode ? $"[Sync.Load.5: {name}]" : "");
                     return info;
                 }
             }
@@ -286,18 +325,23 @@ namespace EFramework.Asset
                             {
                                 if (!Loading.TryGetValue(dep, out var task))
                                 {
+                                    task = new Task() { Name = dep };
+                                    Loading.Add(dep, task);
+
                                     var path = XFile.PathJoin(Const.LocalPath, dep);
                                     var req = AssetBundle.LoadFromFileAsync(path, 0, Const.GetOffset(dep));
-                                    task = new Task() { Name = dep, Operation = req };
-                                    Loading.Add(dep, task);
-                                    yield return new WaitUntil(() => task.Operation.isDone);
+                                    yield return req;
+
+                                    task.Bundle = req.assetBundle;
+                                    task.IsDone = true;
+                                    task.InvokePostOnLoad();
                                     Loading.Remove(dep);
                                 }
-                                else yield return new WaitUntil(() => task.Operation.isDone);
+                                else yield return new WaitUntil(() => task.IsDone);
 
                                 if (!Loaded.TryGetValue(dep, out var dbundle))
                                 {
-                                    if (task.Operation.assetBundle == null)
+                                    if (task.Bundle == null)
                                     {
                                         XLog.Error("XAsset.Bundle.LoadAsync: async load dep-ab error: {0}", dep);
                                         breakDep = i;
@@ -305,7 +349,7 @@ namespace EFramework.Asset
                                     }
                                     else
                                     {
-                                        var bundle = new Bundle() { Name = dep, Source = task.Operation.assetBundle, Count = 1 };
+                                        var bundle = new Bundle() { Name = dep, Source = task.Bundle, Count = 1 };
                                         Loaded.Add(dep, bundle);
                                     }
                                 }
@@ -335,15 +379,20 @@ namespace EFramework.Asset
                     {
                         if (!Loading.TryGetValue(name, out var task))
                         {
+                            task = new Task() { Name = name };
+                            Loading.Add(name, task);
+
                             var path = XFile.PathJoin(Const.LocalPath, name);
                             var req = AssetBundle.LoadFromFileAsync(path, 0, Const.GetOffset(name));
-                            task = new Task() { Name = name, Operation = req };
-                            Loading.Add(name, task);
-                            yield return new WaitUntil(() => task.Operation.isDone);
+                            yield return req;
+
+                            task.Bundle = req.assetBundle;
+                            task.IsDone = true;
+                            task.InvokePostOnLoad();
                             Loading.Remove(name);
                         }
-                        else yield return new WaitUntil(() => task.Operation.isDone);
-                        if (task.Operation.assetBundle == null)
+                        else yield return new WaitUntil(() => task.IsDone);
+                        if (task.Bundle == null)
                         {
                             XLog.Error("XAsset.Bundle.LoadAsync: async load main-ab error: {0}", name);
 
@@ -366,7 +415,7 @@ namespace EFramework.Asset
                         {
                             if (Loaded.TryGetValue(name, out var dbundle) == false)
                             {
-                                info3 = new Bundle() { Name = name, Source = task.Operation.assetBundle, Count = 1 };
+                                info3 = new Bundle() { Name = name, Source = task.Bundle, Count = 1 };
                                 Loaded.Add(name, info3);
                             }
                             else dbundle.Obtain(Const.DebugMode ? $"[Async.Load.5: {name}]" : "");
