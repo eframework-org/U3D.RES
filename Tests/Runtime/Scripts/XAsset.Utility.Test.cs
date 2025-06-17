@@ -20,25 +20,6 @@ public class TestXAssetUtility
         Bundle.Loading.Clear();
     }
 
-    [UnityTest]
-    public IEnumerator Progress()
-    {
-        // 测试没有资源加载时的进度
-        var progress = Utility.Progress();
-        Assert.AreEqual(1f, progress);
-
-        // 测试场景加载时的进度
-        var handle = Resource.LoadAsync("Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube", typeof(GameObject));
-        yield return null;
-        progress = Utility.Progress();
-        Assert.IsTrue(progress <= 1f);
-
-        // 测试资源加载完成时的进度
-        yield return handle;
-        progress = Utility.Progress();
-        Assert.AreEqual(1f, progress);
-    }
-
     [Test]
     public void Loading()
     {

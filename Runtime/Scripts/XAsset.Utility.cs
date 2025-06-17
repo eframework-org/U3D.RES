@@ -16,15 +16,7 @@ namespace EFramework.Asset
         /// - 状态查询：支持查询指定资源或全局加载状态
         ///
         /// 使用手册
-        /// 1. 进度监控
-        ///    - 功能说明：获取总体加载进度
-        ///      函数返回：`float` 类型，范围为 `0~1`，`1` 表示全部加载完成
-        ///      使用示例：
-        ///      <code>
-        ///      float progress = XAsset.Utility.Progress();
-        ///      </code>
-        ///
-        /// 2. 状态查询
+        /// 1. 状态查询
         ///    - 功能说明：检查全局加载状态
         ///      函数返回：`bool` 类型，`true` 表示有资源正在加载
         ///      使用示例：
@@ -45,44 +37,6 @@ namespace EFramework.Asset
         /// </remarks>
         public partial class Utility
         {
-            /// <summary>
-            /// 获取当前所有加载任务的总体进度。计算方式为：
-            /// 1. 统计所有资源、场景和资源包的加载任务数
-            /// 2. 累加每个任务的当前进度
-            /// 3. 计算平均进度作为整体进度
-            /// </summary>
-            /// <returns>返回 0~1 之间的进度值，1 表示全部加载完成</returns>
-            public static float Progress()
-            {
-                var total = Resource.Loading.Count + Scene.Loading.Count + Bundle.Loading.Count;
-                if (total == 0f) return 1; // 没有加载任务时返回完成状态
-                var current = 0f;
-
-                // 计算资源加载进度
-                if (Resource.Loading.Count > 0)
-                {
-                    foreach (var item in Resource.Loading)
-                    {
-                        current += item.Value.Operation.progress;
-                    }
-                }
-                if (Scene.Loading.Count > 0)
-                {
-                    foreach (var item in Scene.Loading)
-                    {
-                        current += item.Value.Operation.progress;
-                    }
-                }
-                if (Bundle.Loading.Count > 0)
-                {
-                    foreach (var item in Bundle.Loading)
-                    {
-                        current += item.Value.Operation.progress;
-                    }
-                }
-                return current / total; // 返回平均进度
-            }
-
             /// <summary>
             /// 检查资源加载状态。可查询指定资源的加载状态，或检查是否有任何资源正在加载。
             /// </summary>
