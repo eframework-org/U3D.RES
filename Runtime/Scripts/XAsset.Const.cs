@@ -89,9 +89,9 @@ namespace EFramework.Asset
         {
             #region 运行配置
             /// <summary>
-            /// Manifest 表示主 AssetBundleManifest 的文件名。
+            /// Manifest 表示 AssetBundleManifest 的默认文件名。
             /// </summary>
-            public static string Manifest = XEnv.Platform.ToString();
+            public static string Manifest = "Assets";
 
             /// <summary>
             /// Bundle 模式的初始化标记。

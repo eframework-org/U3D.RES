@@ -99,7 +99,7 @@ namespace EFramework.Asset
             /// <summary>
             /// 远程资源的默认下载地址，支持变量求值。
             /// </summary>
-            public const string RemoteUriDefault = "${Prefs.Update/PatchUri}/Assets";
+            public const string RemoteUriDefault = "Builds/Patch/${Env.Author}/${Env.Version}/${Env.Platform}/Assets";
 
 #if UNITY_EDITOR
             /// <summary>

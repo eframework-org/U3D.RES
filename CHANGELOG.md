@@ -1,5 +1,13 @@
 # 更新记录
 
+## [0.0.9] - 
+### 变更
+- 修改 `Asset/Build/Output@Editor` 的默认值为 `Builds/Patch/${Env.Platform}/Assets`
+- 修改 `Asset/Build/Include@Editor` 的默认值为 `["Assets/Resources/Bundle", "Assets/Scenes/**/*.unity"]`
+- 修改 `Asset/RemoteUri` 的默认值为 `Builds/Patch/${Env.Author}/${Env.Version}/${Env.Platform}/Assets`
+- 修改 `Const.Manifest` 的默认值为 `Assets`
+- 新增 Build Assets 和 Publish Assets 任务配置项的 GUI 面板显示
+
 ## [0.0.8] - 2025-06-17
 ### 变更
 - 移除 XAsset.Utility.Progress 函数（该指标无实际意义）

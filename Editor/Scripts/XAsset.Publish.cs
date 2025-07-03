@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT-style
 // license that can be found in the LICENSE file.
 
+using System;
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
@@ -44,60 +45,60 @@ namespace EFramework.Asset.Editor
         /// 更多信息请参考模块文档。
         /// </remarks>
         [XEditor.Tasks.Worker(name: "Publish Assets", group: "Asset", runasync: true, priority: 102)]
-        public class Publish : XEditor.Oss
+        public class Publish : XEditor.Oss, XEditor.Tasks.Panel.IOnGUI
         {
             /// <summary>
-            /// 发布流程首选项设置类，包含 OSS 发布相关的配置选项。
+            /// Prefs 是发布流程首选项设置类，包含 OSS 发布相关的配置选项。
             /// </summary>
             public class Prefs : Build.Prefs
             {
                 /// <summary>
-                /// OSS 主机的键名。
+                /// Host 是 OSS 主机的键名。
                 /// </summary>
                 public const string Host = "Asset/Publish/Host@Editor";
 
                 /// <summary>
-                /// OSS 主机的默认值。
+                /// HostDefault 是 OSS 主机的默认值。
                 /// </summary>
                 public const string HostDefault = "${Env.OssHost}";
 
                 /// <summary>
-                /// OSS 存储桶的键名。
+                /// Bucket 是 OSS 存储桶的键名。
                 /// </summary>
                 public const string Bucket = "Asset/Publish/Bucket@Editor";
 
                 /// <summary>
-                /// OSS 存储桶的默认值。
+                /// BucketDefault 是 OSS 存储桶的默认值。
                 /// </summary>
                 public const string BucketDefault = "${Env.OssBucket}";
 
                 /// <summary>
-                /// OSS 访问密钥的键名。
+                /// Access 是 OSS 访问密钥的键名。
                 /// </summary>
                 public const string Access = "Asset/Publish/Access@Editor";
 
                 /// <summary>
-                /// OSS 访问密钥的默认值。
+                /// AccessDefault 是 OSS 访问密钥的默认值。
                 /// </summary>
                 public const string AccessDefault = "${Env.OssAccess}";
 
                 /// <summary>
-                /// OSS 秘密密钥的键名。
+                /// Secret 是 OSS 秘密密钥的键名。
                 /// </summary>
                 public const string Secret = "Asset/Publish/Secret@Editor";
 
                 /// <summary>
-                /// OSS 秘密密钥的默认值。
+                /// SecretDefault 是 OSS 秘密密钥的默认值。
                 /// </summary>
                 public const string SecretDefault = "${Env.OssSecret}";
 
                 /// <summary>
-                /// 获取当前节的名称。
+                /// Section 获取面板章节的名称。
                 /// </summary>
                 public override string Section => "Asset";
 
                 /// <summary>
-                /// 获取当前优先级。
+                /// Priority 获取面板显示的优先级。
                 /// </summary>
                 public override int Priority => 102;
 
@@ -107,32 +108,29 @@ namespace EFramework.Asset.Editor
                 public Prefs() { foldout = false; }
 
                 /// <summary>
-                /// 可视化设置界面。
+                /// serialized 是可序列化的对象。
                 /// </summary>
-                /// <remarks>
-                /// <code>
-                /// 界面元素：
-                /// - Publish：发布选项折叠面板
-                /// - Host：OSS 主机地址输入框
-                /// - Bucket：存储桶名称输入框
-                /// - Access：访问密钥输入框
-                /// - Secret：秘密密钥输入框
-                /// 
-                /// 注意事项：
-                /// - 仅在 Bundle 模式下可用
-                /// - 使用环境变量支持配置注入
-                /// - 支持运行时动态配置
-                /// </code>
-                /// </remarks>
+                [NonSerialized] SerializedObject serialized;
+
+                /// <summary>
+                /// OnVisualize 绘制可视化界面。
+                /// </summary>
                 /// <param name="searchContext">搜索上下文</param>
                 public override void OnVisualize(string searchContext)
                 {
-                    var bundleMode = Target.GetBool(BundleMode, BundleModeDefault);
+                    var taskPanel = searchContext == "Task Runner";
+                    serialized ??= new SerializedObject(this);
+                    serialized.Update();
 
-                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                     var ocolor = GUI.color;
-                    if (!bundleMode) GUI.color = Color.gray;
-                    foldout = EditorGUILayout.Foldout(foldout, new GUIContent("Publish", "Assets Publish Options."));
+                    var bundleMode = Target.GetBool(BundleMode, BundleModeDefault);
+                    if (!taskPanel)
+                    {
+                        if (!bundleMode) GUI.color = Color.gray;
+                        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                        foldout = EditorGUILayout.Foldout(foldout, new GUIContent("Publish", "Assets Publish Options."));
+                    }
+                    else foldout = true;
                     if (foldout && bundleMode)
                     {
                         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
@@ -157,27 +155,27 @@ namespace EFramework.Asset.Editor
                         EditorGUILayout.EndHorizontal();
                         EditorGUILayout.EndVertical();
                     }
+                    else if (foldout && !bundleMode) EditorGUILayout.HelpBox("Bundle Mode is Disabled.", MessageType.None);
                     GUI.color = ocolor;
-                    EditorGUILayout.EndVertical();
+
+                    if (!taskPanel) EditorGUILayout.EndVertical();
                 }
             }
 
+            internal Prefs prefsPanel;
+            void XEditor.Tasks.Panel.IOnGUI.OnGUI()
+            {
+                if (prefsPanel == null)
+                {
+                    prefsPanel = ScriptableObject.CreateInstance<Prefs>();
+                    prefsPanel.Target = XPrefs.Asset;
+                }
+                prefsPanel.OnVisualize("Task Runner");
+            }
+
             /// <summary>
-            /// 处理发布前的预处理逻辑。
+            /// Preprocess 处理发布前的预处理逻辑。
             /// </summary>
-            /// <remarks>
-            /// <code>
-            /// 处理流程：
-            /// 1. 解析环境变量
-            /// 2. 设置 OSS 连接参数
-            /// 3. 配置本地和远程路径
-            /// 
-            /// 注意事项：
-            /// - 支持环境变量注入
-            /// - 自动处理路径配置
-            /// - 继承基类预处理逻辑
-            /// </code>
-            /// </remarks>
             /// <param name="report">构建报告对象，用于记录处理过程中的信息</param>
             public override void Preprocess(XEditor.Tasks.Report report)
             {
@@ -191,24 +189,8 @@ namespace EFramework.Asset.Editor
             }
 
             /// <summary>
-            /// 处理发布过程中的逻辑。
+            /// Process 处理发布过程中的逻辑。
             /// </summary>
-            /// <remarks>
-            /// <code>
-            /// 处理流程：
-            /// 1. 获取本地资源清单
-            /// 2. 获取远程资源清单
-            /// 3. 比较资源差异
-            /// 4. 复制更新的资源
-            /// 5. 执行资源发布
-            /// 
-            /// 注意事项：
-            /// - 支持增量发布
-            /// - 自动备份清单文件
-            /// - 处理资源版本冲突
-            /// - 保留历史版本记录
-            /// </code>
-            /// </remarks>
             /// <param name="report">构建报告对象，用于记录处理过程中的信息</param>
             public override void Process(XEditor.Tasks.Report report)
             {

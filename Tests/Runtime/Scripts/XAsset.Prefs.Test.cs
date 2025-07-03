@@ -29,7 +29,7 @@ public class TestXAssetPrefs
         Assert.AreEqual(Prefs.OffsetFactorDefault, 4);
         Assert.AreEqual(Prefs.AssetUriDefault, "Patch@Assets.zip");
         Assert.AreEqual(Prefs.LocalUriDefault, "Assets");
-        Assert.AreEqual(Prefs.RemoteUriDefault, "${Prefs.Update/PatchUri}/Assets");
+        Assert.AreEqual(Prefs.RemoteUriDefault, "Builds/Patch/${Env.Author}/${Env.Version}/${Env.Platform}/Assets");
     }
 }
 #endif

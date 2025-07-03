@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using Microsoft.Extensions.FileSystemGlobbing;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
 using UnityEditor.Build.Reporting;
 using EFramework.Editor;
 using EFramework.Utility;
@@ -32,8 +31,8 @@ namespace EFramework.Asset.Editor
         /// 1. 首选项配置
         /// 
         /// 配置项说明：
-        /// - 输出路径：`Asset/Build/Output@Editor`，默认值为 `Builds/Patch/Assets/${Env.Channel}/${Env.Platform}`
-        /// - 包含路径：`Asset/Build/Include@Editor`，默认值为 `["Assets/Resources/Bundle", "Assets/Resources/Internal/Prefab", "Assets/Scenes/**/*.unity"]`
+        /// - 输出路径：`Asset/Build/Output@Editor`，默认值为 `Builds/Patch/${Env.Platform}/Assets`
+        /// - 包含路径：`Asset/Build/Include@Editor`，默认值为 `["Assets/Resources/Bundle", "Assets/Scenes/**/*.unity"]`
         /// - 排除路径：`Asset/Build/Exclude@Editor`，默认值为 `[]`
         /// - 暂存路径：`Asset/Build/Stash@Editor`，默认值为 `["Assets/Resources/Bundle"]`
         /// - 合并材质：`Asset/Build/Merge/Material@Editor`，默认值为 `true`
@@ -58,22 +57,23 @@ namespace EFramework.Asset.Editor
         /// </remarks>
         [XEditor.Tasks.Worker(name: "Build Assets", group: "Asset", priority: 101)]
         public class Build : XEditor.Tasks.Worker,
+            XEditor.Tasks.Panel.IOnGUI,
             XEditor.Event.Internal.OnPreprocessBuild,
             XEditor.Event.Internal.OnPostprocessBuild
         {
             /// <summary>
-            /// 构建配置管理器，提供资源打包相关的配置项和界面化设置功能。
+            /// Prefs 是构建的配置管理器，提供资源打包相关的配置项和界面化设置功能。
             /// 包含输出路径、资源包含/排除规则、资源暂存设置以及合并选项等配置。
             /// </summary>
             public class Prefs : Asset.XAsset.Prefs
             {
                 // 输出路径配置
                 public const string Output = "Asset/Build/Output@Editor";
-                public const string OutputDefault = "Builds/Patch/Assets/${Env.Channel}/${Env.Platform}";
+                public const string OutputDefault = "Builds/Patch/${Env.Platform}/Assets";
 
                 // 资源路径配置
                 public const string Include = "Asset/Build/Include@Editor";
-                public static readonly string[] IncludeDefault = new string[] { "Assets/Resources/Bundle", "Assets/Resources/Internal/Prefab", "Assets/Scenes/**/*.unity" };
+                public static readonly string[] IncludeDefault = new string[] { "Assets/Resources/Bundle", "Assets/Scenes/**/*.unity" };
                 public const string Exclude = "Asset/Build/Exclude@Editor";
                 public const string Stash = "Asset/Build/Stash@Editor";
                 public static readonly string[] StashDefault = new string[] { "Assets/Resources/Bundle" };
@@ -98,31 +98,30 @@ namespace EFramework.Asset.Editor
 
                 public Prefs() { foldout = false; }
 
-                public override void OnActivate(string searchContext, VisualElement rootElement)
-                {
-                    serialized = new SerializedObject(this);
-                    base.OnActivate(searchContext, rootElement);
-                }
-
                 /// <summary>
-                /// 在编辑器中绘制配置界面，方便用户可视化管理构建设置。
+                /// OnVisualize 在编辑器中绘制配置界面，方便用户可视化管理构建设置。
                 /// 提供输出路径、打包选项、资源规则等配置的编辑功能。
                 /// </summary>
                 /// <param name="searchContext">搜索上下文。</param>
                 public override void OnVisualize(string searchContext)
                 {
+                    var taskPanel = searchContext == "Task Runner";
+                    serialized ??= new SerializedObject(this);
                     serialized.Update();
 
+                    var ocolor = GUI.color;
                     var bundleMode = Target.GetBool(BundleMode, BundleModeDefault);
-                    Color ocolor;
-
-                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                    ocolor = GUI.color;
-                    if (!bundleMode) GUI.color = Color.gray;
-                    foldout = EditorGUILayout.Foldout(foldout, new GUIContent("Build", "Assets Build Options."));
+                    if (!taskPanel)
+                    {
+                        if (!bundleMode) GUI.color = Color.gray;
+                        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                        foldout = EditorGUILayout.Foldout(foldout, new GUIContent("Build", "Assets Build Options."));
+                    }
+                    else foldout = true;
                     if (foldout && bundleMode)
                     {
                         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
                         EditorGUILayout.BeginHorizontal();
                         Title("Output", "Output Path of AssetBundle.");
                         Target.Set(Output, EditorGUILayout.TextField("", Target.GetString(Output, OutputDefault)));
@@ -160,10 +159,13 @@ namespace EFramework.Asset.Editor
                         EditorGUILayout.PropertyField(serialized.FindProperty("stash"), new GUIContent("Stash"));
                         if (serialized.ApplyModifiedProperties()) Target.Set(Stash, stash);
                         EditorGUILayout.EndHorizontal();
+
                         EditorGUILayout.EndVertical();
                     }
+                    else if (foldout && !bundleMode) EditorGUILayout.HelpBox("Bundle Mode is Disabled.", MessageType.None);
                     GUI.color = ocolor;
-                    EditorGUILayout.EndVertical();
+
+                    if (!taskPanel) EditorGUILayout.EndVertical();
                 }
             }
 
@@ -171,17 +173,20 @@ namespace EFramework.Asset.Editor
             internal static string dependencyFile { get => XFile.PathJoin(XEnv.ProjectPath, "Library", "AssetDependency.db"); }
             internal string buildDir;
 
+            internal Prefs prefsPanel;
+            void XEditor.Tasks.Panel.IOnGUI.OnGUI()
+            {
+                if (prefsPanel == null)
+                {
+                    prefsPanel = ScriptableObject.CreateInstance<Prefs>();
+                    prefsPanel.Target = XPrefs.Asset;
+                }
+                prefsPanel.OnVisualize("Task Runner");
+            }
+
             /// <summary>
-            /// 构建前的准备工作，包括创建输出目录和备份当前资源清单。
+            /// Preprocess 构建前的准备工作，包括创建输出目录和备份当前资源清单。
             /// </summary>
-            /// <remarks>
-            /// <code>
-            /// 处理流程：
-            /// 1. 验证输出路径配置
-            /// 2. 创建构建目录结构
-            /// 3. 备份现有清单文件
-            /// </code>
-            /// </remarks>
             /// <param name="report">构建报告对象，用于记录构建过程中的信息</param>
             public override void Preprocess(XEditor.Tasks.Report report)
             {
@@ -195,16 +200,8 @@ namespace EFramework.Asset.Editor
             }
 
             /// <summary>
-            /// 执行资源构建过程，分析依赖关系并生成 AssetBundle 文件。
+            /// Process 执行资源构建过程，分析依赖关系并生成 AssetBundle 文件。
             /// </summary>
-            /// <remarks>
-            /// <code>
-            /// 处理流程：
-            /// 1. 生成资源依赖关系
-            /// 2. 创建资源包构建配置
-            /// 3. 执行资源包构建
-            /// </code>
-            /// </remarks>
             /// <param name="report">构建报告对象，用于记录构建过程中的信息</param>
             public override void Process(XEditor.Tasks.Report report)
             {
@@ -232,15 +229,8 @@ namespace EFramework.Asset.Editor
             }
 
             /// <summary>
-            /// 构建后的收尾工作，生成新的资源清单并输出构建报告。
+            /// Postprocess 构建后的收尾工作，生成新的资源清单并输出构建报告。
             /// </summary>
-            /// <remarks>
-            /// <code>
-            /// 处理流程：
-            /// 1. 生成资源清单文件
-            /// 2. 生成构建总结报告
-            /// </code>
-            /// </remarks>
             /// <param name="report">构建报告对象，用于记录构建过程中的信息</param>
             public override void Postprocess(XEditor.Tasks.Report report)
             {
@@ -249,24 +239,9 @@ namespace EFramework.Asset.Editor
             }
 
             /// <summary>
-            /// 分析项目资源并生成依赖关系图，支持自定义打包规则和资源合并策略。
+            /// GenDependency 分析项目资源并生成依赖关系图，支持自定义打包规则和资源合并策略。
             /// 会处理场景文件、材质球等特殊资源，确保正确的打包顺序和依赖关系。
             /// </summary>
-            /// <remarks>
-            /// <code>
-            /// 处理流程：
-            /// 1. 收集源资源文件
-            /// 2. 应用包含和排除规则
-            /// 3. 分析资源依赖关系
-            /// 4. 处理资源合并策略
-            /// 5. 生成依赖关系文件
-            /// 
-            /// 注意事项：
-            /// - 场景文件(.unity)需要单独打包
-            /// - 支持自定义Bundle名称
-            /// - 可配置材质和单资源的合并策略
-            /// </code>
-            /// </remarks>
             /// <returns>资源依赖关系字典，键为Bundle名称，值为资源路径列表</returns>
             public static Dictionary<string, List<string>> GenDependency()
             {
@@ -480,12 +455,12 @@ namespace EFramework.Asset.Editor
                     if (XFile.HasFile(dependencyFile)) XFile.DeleteFile(dependencyFile);
                     XLog.Panic(e);
                 }
-                XLog.Debug("XAsset.Build.GenDependency: generate <a href=\"file:///{0}\">{1}</a> done, elapsed {2}s.", Path.GetFullPath(dependencyFile), dependencyFile, XTime.GetTimestamp() - buildTime);
+                XLog.Debug("XAsset.Build.GenDependency: generate <a href=\"file:///{0}\">{1}</a> done, elapsed {2}s.", Path.GetFullPath(dependencyFile), Path.GetRelativePath(XEnv.ProjectPath, dependencyFile), XTime.GetTimestamp() - buildTime);
                 return buildBundles;
             }
 
             /// <summary>
-            /// 根据构建结果生成资源清单文件，记录每个资源包的信息（如MD5、大小等）。
+            /// GenManifest 根据构建结果生成资源清单文件，记录每个资源包的信息（如MD5、大小等）。
             /// 这个清单文件将用于运行时的资源加载和版本检查。
             /// </summary>
             /// <param name="_">构建报告对象，用于记录构建过程中的信息</param>
@@ -554,7 +529,7 @@ namespace EFramework.Asset.Editor
             }
 
             /// <summary>
-            /// 生成构建报告，记录资源变更情况并清理无效的资源文件。
+            /// GenSummary 生成构建报告，记录资源变更情况并清理无效的资源文件。
             /// 通过对比新旧清单，可以了解此次构建的具体改动。
             /// </summary>
             private void GenSummary()
@@ -661,7 +636,7 @@ namespace EFramework.Asset.Editor
             }
 
             /// <summary>
-            /// 构建开始前的预处理，主要处理平台相关的资源复制工作。
+            /// XEditor.Event.Internal.OnPreprocessBuild.Process 是构建开始前的预处理，主要处理平台相关的资源复制工作。
             /// 对于移动平台，会将资源打包成 zip 文件以便于分发。
             /// </summary>
             /// <param name="args">构建参数数组</param>
@@ -711,7 +686,7 @@ namespace EFramework.Asset.Editor
             }
 
             /// <summary>
-            /// 构建完成后的后处理，负责恢复暂存的资源并清理临时文件。
+            /// XEditor.Event.Internal.OnPostprocessBuild.Process 是构建完成后的后处理，负责恢复暂存的资源并清理临时文件。
             /// 确保构建过程不会影响项目的正常开发。
             /// </summary>
             /// <param name="args">构建参数数组</param>
@@ -740,23 +715,9 @@ namespace EFramework.Asset.Editor
             }
 
             /// <summary>
-            /// 将指定资源暂时移动到临时位置，用于构建过程中的资源管理。
+            /// Stash 将指定资源暂时移动到临时位置，用于构建过程中的资源管理。
             /// 会同时处理资源文件及其对应的 meta 文件，并记录暂存信息。
             /// </summary>
-            /// <remarks>
-            /// <code>
-            /// 处理流程：
-            /// 1. 清理旧的存储文件
-            /// 2. 移动资源到临时位置
-            /// 3. 处理资源元数据文件
-            /// 4. 记录存储状态
-            /// 
-            /// 注意事项：
-            /// - 按路径长度降序处理，避免嵌套目录问题
-            /// - 自动处理.meta文件
-            /// - 刷新资源数据库
-            /// </code>
-            /// </remarks>
             public static void Stash()
             {
                 try
@@ -799,24 +760,9 @@ namespace EFramework.Asset.Editor
             }
 
             /// <summary>
-            /// 将暂存的资源恢复到原始位置。为了避免资源丢失，不会主动删除目标位置的文件，
-            /// 如果恢复过程中出现问题，会提示用户手动处理。
+            /// Restore 将暂存的资源恢复到原始位置。
+            /// 为了避免资源丢失，不会主动删除目标位置的文件，如果恢复过程中出现问题，会提示用户手动处理。
             /// </summary>
-            /// <remarks>
-            /// <code>
-            /// 处理流程：
-            /// 1. 检查存储状态文件
-            /// 2. 恢复资源到原位置
-            /// 3. 处理资源元数据文件
-            /// 4. 清理存储状态
-            /// 
-            /// 注意事项：
-            /// - 不主动删除目标位置文件，避免资源丢失
-            /// - 异常时由用户手动处理
-            /// - 自动处理.meta文件
-            /// - 刷新资源数据库
-            /// </code>
-            /// </remarks>
             [InitializeOnLoadMethod]
             public static void Restore()
             {
