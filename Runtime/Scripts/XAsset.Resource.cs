@@ -82,13 +82,14 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 当前正在进行的资源加载任务列表，用于处理并发加载请求，
+            /// Loading 是当前正在进行的资源加载任务列表，用于处理并发加载请求，
             /// 避免同一资源被重复加载。
             /// </summary>
             internal static readonly Dictionary<string, Task> Loading = new();
 
             /// <summary>
-            /// 同步加载资源。根据当前模式和参数，从 Resources 目录或 AssetBundle 文件中加载资源。
+            /// Load 同步加载指定类型的资源。
+            /// 根据当前模式和参数，从 Resources 目录或 AssetBundle 文件中加载资源。
             /// 在 Bundle 模式下会自动处理资源包的加载和依赖关系。
             /// </summary>
             /// <param name="path">资源在项目中的相对路径</param>
@@ -132,8 +133,8 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 同步加载指定类型的资源。这是泛型版本的加载方法，
-            /// 提供更方便的类型安全的资源加载方式。
+            /// Load 同步加载指定类型的资源。
+            /// 泛型版本的加载方法，提供更方便的类型安全的资源加载方式。
             /// </summary>
             /// <typeparam name="T">要加载的资源类型</typeparam>
             /// <param name="path">资源在项目中的相对路径</param>
@@ -142,7 +143,8 @@ namespace EFramework.Asset
             public static T Load<T>(string path, bool resource = false) where T : UnityEngine.Object { return Load(path, typeof(T), resource) as T; }
 
             /// <summary>
-            /// 异步加载资源。提供非阻塞的资源加载方式，适合加载大型资源。
+            /// LoadAsync 异步加载资源。
+            /// 提供非阻塞的资源加载方式，适合加载大型资源。
             /// 可以通过返回的Handler监控加载进度，并在加载完成时得到通知。
             /// </summary>
             /// <param name="path">资源在项目中的相对路径</param>
@@ -158,7 +160,8 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 异步加载指定类型的资源。泛型版本的异步加载方法，提供类型安全的回调方式。
+            /// LoadAsync 异步加载指定类型的资源。
+            /// 泛型版本的异步加载方法，提供类型安全的回调方式。
             /// </summary>
             /// <typeparam name="T">要加载的资源类型</typeparam>
             /// <param name="path">资源在项目中的相对路径</param>
@@ -168,8 +171,8 @@ namespace EFramework.Asset
             public static Handler LoadAsync<T>(string path, Action<T> callback = null, bool resource = false) where T : UnityEngine.Object { return LoadAsync(path, typeof(T), (asset) => callback?.Invoke(asset as T), resource); }
 
             /// <summary>
-            /// 异步加载资源的内部实现。处理实际的资源加载流程，
-            /// 包括依赖资源的加载、加载状态的跟踪和回调的触发。
+            /// LoadAsync 异步加载资源的内部实现。
+            /// 处理实际的资源加载流程，包括依赖资源的加载、加载状态的跟踪和回调的触发。
             /// 
             /// 加载流程：
             /// 1. 根据当前模式选择加载方式（Resources/AssetBundle）
@@ -269,7 +272,8 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 卸载指定路径的资源。在 Bundle 模式下，会卸载对应的资源包。
+            /// Unload 卸载指定路径的资源。
+            /// 在 Bundle 模式下，会卸载对应的资源包。
             /// 注意：这个操作可能会影响到共享同一资源包的其他资源。
             /// </summary>
             /// <param name="path">要卸载的资源路径</param>

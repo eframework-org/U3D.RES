@@ -54,29 +54,29 @@ namespace EFramework.Asset
     public partial class XAsset
     {
         /// <summary>
-        /// 资源加载完成后的回调函数定义，用于通知调用者资源已准备就绪。
+        /// Callback 是资源加载完成后的回调类型，用于通知调用者资源已准备就绪。
         /// </summary>
-        /// <param name="asset">加载完成的Unity资源对象</param>
+        /// <param name="asset">加载完成的 Unity 资源对象</param>
         public delegate void Callback(UnityEngine.Object asset);
 
         /// <summary>
-        /// 资源加载处理器，负责跟踪和管理异步资源加载的过程。
+        /// Handler 是资源加载处理器，负责跟踪和管理异步资源加载的过程。
         /// 提供加载进度监控、事件通知等功能，支持场景和资源包的异步加载操作。
         /// </summary>
         public class Handler : IEnumerator
         {
             /// <summary>
-            /// 当前已完成加载的资源数量。
+            /// doneCount 表示当前已完成加载的资源数量。
             /// </summary>
             internal int doneCount;
 
             /// <summary>
-            /// 需要加载的资源总数。
+            /// totalCount 表示需要加载的资源总数。
             /// </summary>
             internal int totalCount;
 
             /// <summary>
-            /// 获取当前加载进度（0-1之间的浮点数）。
+            /// Progress 获取当前加载进度（0-1之间的浮点数）。
             /// 对于单个资源，直接返回其加载进度；
             /// 对于多个资源，返回总体完成的百分比。
             /// </summary>
@@ -98,24 +98,24 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 资源开始加载前触发的事件，可用于执行预加载准备工作。
+            /// OnPreload 是资源开始加载前触发的事件，可用于执行预加载准备工作。
             /// </summary>
             public event Action OnPreload;
 
             /// <summary>
-            /// 资源加载完成后触发的事件，可用于执行加载后的初始化操作。
+            /// OnPostload 是资源加载完成后触发的事件，可用于执行加载后的初始化操作。
             /// </summary>
             public event Action OnPostload;
 
             /// <summary>
-            /// Unity的异步操作对象，可能是ResourceRequest或AssetBundleRequest，
-            /// 用于跟踪具体的加载进度。
+            /// Operation 是 Unity 的异步操作对象。
+            /// 可能是 ResourceRequest 或 AssetBundleRequest，用于跟踪具体的加载进度。
             /// </summary>
             public AsyncOperation Operation;
 
             /// <summary>
-            /// 获取加载完成的资源对象。根据Operation类型的不同，
-            /// 可能返回Resources加载的资源或AssetBundle中的资源。
+            /// Asset 获取加载完成的资源对象。
+            /// 根据Operation类型的不同，可能返回 Resources 加载的资源或 AssetBundle 中的资源。
             /// </summary>
             public UnityEngine.Object Asset
             {
@@ -138,24 +138,23 @@ namespace EFramework.Asset
             public bool Error { get; internal set; }
 
             /// <summary>
-            /// 检查资源是否已完成加载。
+            /// IsDone 检查资源是否已完成加载。
             /// </summary>
             public bool IsDone { get => Error || (Operation != null && Operation.isDone); }
 
             /// <summary>
-            /// 推进加载进程。作为协程迭代器，在加载未完成时返回true，
-            /// 允许 Unity 继续执行异步加载。
+            /// MoveNext 推进加载进程。
+            /// 作为协程迭代器，在加载未完成时返回true，允许 Unity 继续执行异步加载。
             /// </summary>
             public bool MoveNext() { return !IsDone; }
 
             /// <summary>
-            /// 重置加载器状态，清空所有计数器和事件监听，
-            /// 使其可以重新用于新的加载任务。
+            /// Reset 重置加载器状态，清空所有计数器和事件监听，使其可以重新用于新的加载任务。
             /// </summary>
             public void Reset() { doneCount = 0; totalCount = 0; OnPreload = null; OnPostload = null; Operation = null; Error = false; }
 
             /// <summary>
-            /// 触发预加载事件，并安全处理可能的异常。
+            /// InvokePreload 触发预加载事件，并安全处理可能的异常。
             /// </summary>
             internal void InvokePreload()
             {
@@ -164,7 +163,7 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 触发加载完成事件，并安全处理可能的异常。
+            /// InvokePostload 触发加载完成事件，并安全处理可能的异常。
             /// </summary>
             internal void InvokePostload()
             {
@@ -174,35 +173,49 @@ namespace EFramework.Asset
         }
 
         /// <summary>
-        /// 资源系统的关键事件类型，定义了资源生命周期中的重要节点。
+        /// EventType 是资源系统的内置事件类型，定义了资源生命周期中的重要节点。
         /// 这些事件可用于在特定时机执行自定义逻辑。
         /// </summary>
         public enum EventType
         {
-            /// <summary>资源加载前的事件</summary>
+            /// <summary>
+            /// OnPreLoadAsset 是资源加载前的事件。
+            /// </summary>
             OnPreLoadAsset,
 
-            /// <summary>资源加载完成后的事件</summary>
+            /// <summary>
+            /// OnPostLoadAsset 是资源加载完成后的事件。
+            /// </summary>
             OnPostLoadAsset,
 
-            /// <summary>场景加载前的事件</summary>
+            /// <summary>
+            /// OnPreLoadScene 是场景加载前的事件。
+            /// </summary>
             OnPreLoadScene,
 
-            /// <summary>场景加载完成后的事件</summary>
+            /// <summary>
+            /// OnPostLoadScene 是场景加载完成后的事件。
+            /// </summary>
             OnPostLoadScene,
 
-            /// <summary>开始卸载所有资源前的事件</summary>
+            /// <summary>
+            /// OnPreUnloadAll 是开始卸载所有资源前的事件。
+            /// </summary>
             OnPreUnloadAll,
 
-            /// <summary>完成卸载所有资源后的事件</summary>
+            /// <summary>
+            /// OnPostUnloadAll 是完成卸载所有资源后的事件。
+            /// </summary>
             OnPostUnloadAll,
 
-            /// <summary>资源包卸载完成后的事件</summary>
+            /// <summary>
+            /// OnPostUnloadBundle 是资源包卸载完成后的事件。
+            /// </summary>
             OnPostUnloadBundle,
         }
 
         /// <summary>
-        /// 资源系统的事件管理器实例，用于处理资源生命周期相关的事件
+        /// Event 是资源系统的内置事件管理器实例，用于处理资源生命周期相关的事件。
         /// </summary>
         public static readonly XEvent.Manager Event = new();
 
@@ -212,7 +225,7 @@ namespace EFramework.Asset
         [UnityEngine.RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 #endif
         /// <summary>
-        /// 资源系统的初始化方法，在编辑器或运行时自动调用。
+        /// OnInit 是资源系统的初始化方法，在编辑器或运行时自动调用。
         /// 负责设置场景加载和卸载的回调，处理资源清理和依赖关系。
         /// </summary>
         internal static void OnInit()

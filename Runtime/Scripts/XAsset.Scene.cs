@@ -50,27 +50,33 @@ namespace EFramework.Asset
         public partial class Scene
         {
             /// <summary>
-            /// 场景加载任务，用于跟踪异步加载过程中的场景状态。
+            /// Task 是场景加载的任务，用于跟踪异步加载过程中的场景状态。
             /// </summary>
             internal class Task
             {
-                internal string Name; // 场景名称，用于标识和查找场景。
+                /// <summary>
+                /// Name 是场景的名称，用于标识和查找场景。
+                /// </summary>
+                internal string Name;
 
-                internal AsyncOperation Operation; // Unity 场景加载的异步操作对象。
+                /// <summary>
+                /// Operation 是 Unity 场景加载的异步操作对象。
+                /// </summary>
+                internal AsyncOperation Operation;
             }
 
             /// <summary>
-            /// 记录当前正在加载的场景，用于防止重复加载同一场景。
+            /// Loading 记录当前正在加载的场景，用于防止重复加载同一场景。
             /// </summary>
             internal static readonly Dictionary<string, Task> Loading = new();
 
             /// <summary>
-            /// 已加载场景的记录表。
+            /// Loaded 记录已加载的场景。
             /// </summary>
             internal static readonly Dictionary<string, string> Loaded = new();
 
             /// <summary>
-            /// 同步加载场景。在 Bundle 模式下会自动加载场景对应的资源包。
+            /// Load 同步加载场景。在 Bundle 模式下会自动加载场景对应的资源包。
             /// </summary>
             /// <param name="nameOrPath">场景名称或完整路径，支持从 Assets 目录下的相对路径加载</param>
             /// <param name="loadMode">场景加载模式：Single 会卸载当前场景，Additive 则保留当前场景</param>
@@ -108,7 +114,7 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 异步加载场景。适用于加载大型场景，避免加载过程阻塞主线程。
+            /// LoadAsync 异步加载场景。适用于加载大型场景，避免加载过程阻塞主线程。
             /// </summary>
             /// <param name="nameOrPath">场景名称或完整路径</param>
             /// <param name="callback">场景加载完成后的回调函数</param>
@@ -123,7 +129,8 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 场景异步加载的内部实现。处理场景加载的具体流程：
+            /// LoadAsync 是场景异步加载的内部实现。
+            /// 处理场景加载的具体流程：
             /// 1. 在Bundle模式下先加载场景资源包
             /// 2. 通过SceneManager加载场景
             /// 3. 处理加载回调和事件通知
@@ -224,7 +231,7 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 卸载指定场景。在 Bundle 模式下会同时卸载场景对应的资源包。
+            /// Unload 卸载指定场景。在 Bundle 模式下会同时卸载场景对应的资源包。
             /// </summary>
             /// <param name="nameOrPath">要卸载的场景名称或路径</param>
             public static void Unload(string nameOrPath)

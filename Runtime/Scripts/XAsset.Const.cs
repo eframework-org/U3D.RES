@@ -94,18 +94,18 @@ namespace EFramework.Asset
             public static string Manifest = "Assets";
 
             /// <summary>
-            /// Bundle 模式的初始化标记。
+            /// bBundleMode 是 Bundle 模式的初始化标记。
             /// </summary>
             internal static bool bBundleMode;
 
             /// <summary>
-            /// Bundle 模式的当前状态。
+            /// bundleMode 是 Bundle 模式的当前状态。
             /// </summary>
             internal static bool bundleMode;
 
             /// <summary>
-            /// 获取资源系统当前是否运行在 Bundle 模式下。Bundle 模式下会从打包的资源文件中加载资源，
-            /// 而不是直接从 Assets 目录加载。这个设置会受到编辑器状态和模拟模式的影响。
+            /// BundleMode 获取资源系统当前是否运行在 Bundle 模式下。
+            /// Bundle 模式下会从打包的资源文件中加载资源，而不是直接从 Assets 目录加载，这个设置会受到编辑器状态和模拟模式的影响。
             /// </summary>
             public static bool BundleMode
             {
@@ -121,18 +121,18 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 引用模式的初始化标记
+            /// bReferMode 是引用模式的初始化标记。
             /// </summary>
             internal static bool bReferMode;
 
             /// <summary>
-            /// 引用模式的当前状态
+            /// referMode 是引用模式的当前状态。
             /// </summary>
             internal static bool referMode;
 
             /// <summary>
-            /// 获取是否启用了引用计数模式。在引用计数模式下，系统会跟踪资源的使用情况，
-            /// 只有当资源不再被任何对象引用时才会被卸载。这个模式需要 Bundle 模式开启才能生效。
+            /// ReferMode 获取是否启用了引用计数模式。
+            /// 在引用计数模式下，系统会跟踪资源的使用情况，只有当资源不再被任何对象引用时才会被卸载，这个模式需要 Bundle 模式开启才能生效。
             /// </summary>
             public static bool ReferMode
             {
@@ -148,18 +148,18 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 调试模式的初始化标记
+            /// bDebugMode 是调试模式的初始化标记。
             /// </summary>
             internal static bool bDebugMode;
 
             /// <summary>
-            /// 调试模式的当前状态
+            /// debugMode 是调试模式的当前状态。
             /// </summary>
             internal static bool debugMode;
 
             /// <summary>
-            /// 获取是否启用了调试模式。调试模式下会输出详细的日志信息，
-            /// 帮助开发者追踪资源加载和卸载的过程。这个模式同样需要 Bundle 模式开启才能生效。
+            /// DebugMode 获取是否启用了调试模式。
+            /// 调试模式下会输出详细的日志信息，帮助开发者追踪资源加载和卸载的过程，这个模式同样需要 Bundle 模式开启才能生效。
             /// </summary>
             public static bool DebugMode
             {
@@ -175,18 +175,18 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 本地路径的初始化标记
+            /// bLocalPath 是本地路径的初始化标记。
             /// </summary>
             internal static bool bLocalPath;
 
             /// <summary>
-            /// 缓存的本地路径
+            /// localPath 是缓存的本地路径。
             /// </summary>
             internal static string localPath;
 
             /// <summary>
-            /// 获取资源文件的本地存储路径。这个路径用于存放下载或解压后的资源文件，
-            /// 路径格式会根据当前平台和配置自动调整。
+            /// LocalPath 获取资源文件的本地存储路径。
+            /// 这个路径用于存放下载或解压后的资源文件，路径格式会根据当前平台和配置自动调整。
             /// </summary>
             public static string LocalPath
             {
@@ -204,12 +204,12 @@ namespace EFramework.Asset
 
             #region 标签生成
             /// <summary>
-            /// 资源包文件的扩展名，用于标识打包后的资源文件。
+            /// Extension 是资源包文件的默认扩展名，用于标识打包后的资源文件。
             /// </summary>
             public static string Extension = ".bundle";
 
             /// <summary>
-            /// 资源名称转换规则表，定义了如何处理资源路径中的特殊字符。
+            /// escapeChars 是资源名称转换规则表，定义了如何处理资源路径中的特殊字符。
             /// 这些规则会在生成资源包名称时使用，确保生成的名称符合文件系统要求。
             /// </summary>
             internal static readonly Dictionary<string, string> escapeChars = new() {
@@ -221,14 +221,13 @@ namespace EFramework.Asset
             };
 
             /// <summary>
-            /// 资源标签缓存，用于提高重复标签生成的性能。
-            /// 避免对相同的资源路径重复进行标签转换计算。
+            /// tagCache 是资源标签缓存，用于提高重复标签生成的性能。
             /// </summary>
             internal static readonly Dictionary<string, string> tagCache = new();
 
             /// <summary>
-            /// 根据资源路径生成唯一的资源标签。这个标签将用作资源包的文件名，
-            /// 会自动处理路径中的特殊字符并确保生成的名称符合文件系统规范。
+            /// GenTag 根据资源路径生成唯一的资源标签。
+            /// 这个标签将用作资源包的文件名，会自动处理路径中的特殊字符并确保生成的名称符合文件系统规范。
             /// </summary>
             /// <param name="assetPath">需要转换的资源路径</param>
             /// <returns>转换后的资源标签，已处理特殊字符并添加扩展名</returns>
@@ -246,7 +245,14 @@ namespace EFramework.Asset
                 }
             }
 
+            /// <summary>
+            /// bOffsetFactor 是 offsetFactor 的初始化标记。
+            /// </summary>
             internal static bool bOffsetFactor;
+
+            /// <summary>
+            /// offsetFactor 是 Bundle 文件偏移的缓存值。
+            /// </summary>
             internal static int offsetFactor;
 
             /// <summary>

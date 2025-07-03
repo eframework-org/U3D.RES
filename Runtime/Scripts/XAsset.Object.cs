@@ -43,24 +43,24 @@ namespace EFramework.Asset
         public partial class Object : MonoBehaviour
         {
             /// <summary>
-            /// 资源在 Bundle 中的原始路径，用于定位和加载资源包。
+            /// Source 是资源在 Bundle 中的原始路径，用于定位和加载资源包。
             /// </summary>
             [SerializeField]
             internal string Source;
 
             /// <summary>
-            /// 资源的引用计数。
+            /// Count 是资源的引用计数。
             /// -1：通过 Obtain 方法手动引用
             /// 0：未被引用
             /// >0：被场景或预制体实例引用的次数
             /// </summary>
             internal int Count;
 
+            internal string label;
             /// <summary>
-            /// 用于调试的对象标签，格式为"对象名@哈希码"。
+            /// Label 是用于调试的对象标签，格式为"对象名@哈希码"。
             /// 即使对象被销毁也能保持唯一标识。
             /// </summary>
-            internal string label;
             internal string Label
             {
                 get
@@ -75,7 +75,7 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// Unity 对象唤醒时的初始化，设置初始引用计数并加载对应的资源包。
+            /// Awake 在 Unity 对象初始化时调用，设置初始引用计数并加载对应的资源包。
             /// 这通常发生在预制体实例化或场景加载时。
             /// </summary>
             internal void Awake()
@@ -87,13 +87,13 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// Unity 对象销毁时的清理，减少引用计数。
-            /// 当引用计数降为0时，相关的资源包可能会被卸载。
+            /// OnDestroy 在 Unity 对象销毁时的调用，减少引用计数。
+            /// 当引用计数降为 0 时，相关的资源包可能会被卸载。
             /// </summary>
             internal void OnDestroy() { Count--; }
 
             /// <summary>
-            /// 手动增加对资源实例的引用。这会将引用计数设为-1，表示实例被手动持有。
+            /// Obtain 手动增加对资源实例的引用。这会将引用计数设为-1，表示实例被手动持有。
             /// 通常用于需要长期持有实例的场景，如 UI 界面或常驻对象。
             /// </summary>
             internal void Obtain()
@@ -107,7 +107,7 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 手动释放对资源实例的引用。这会清除手动引用状态，允许实例在不再需要时被卸载。
+            /// Release 手动释放对资源实例的引用。这会清除手动引用状态，允许实例在不再需要时被卸载。
             /// 应当在确保不再需要实例时调用此方法。
             /// </summary>
             internal void Release()
@@ -124,13 +124,13 @@ namespace EFramework.Asset
         public partial class Object : MonoBehaviour
         {
             /// <summary>
-            /// 当前已加载的所有资源实例列表，用于全局实例追踪和管理。
+            /// Loaded 是当前已加载的所有资源实例列表，用于全局实例追踪和管理。
             /// </summary>
             internal static readonly List<Object> Loaded = new();
 
             /// <summary>
-            /// 释放指定游戏对象持有的资源。只能用于未实例化的资源，
-            /// 比如从 Resources 或 AssetBundle 直接加载的对象。
+            /// Release 释放指定游戏对象持有的资源。
+            /// 只能用于未实例化的资源，比如从 Resources 或 AssetBundle 直接加载的对象。
             /// </summary>
             /// <param name="go">要释放资源的游戏对象</param>
             public static void Release(GameObject go)
@@ -154,8 +154,8 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 手动引用指定游戏对象的资源。只能用于未实例化的资源，
-            /// 通常用于需要确保资源不被卸载的场景。
+            /// Obtain 手动引用指定游戏对象的资源。
+            /// 只能用于未实例化的资源，通常用于需要确保资源不被卸载的场景。
             /// </summary>
             /// <param name="go">要引用资源的游戏对象</param>
             public static void Obtain(GameObject go)
@@ -179,7 +179,8 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 清理所有已加载的资源实例。这个过程会分两个阶段进行：
+            /// Cleanup 清理所有已加载的资源实例。
+            /// 这个过程会分两个阶段进行：
             /// 1. 处理未被引用的资源（Count=0）
             /// 2. 处理所有被引用的资源（Count>0）
             /// 

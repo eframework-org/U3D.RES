@@ -66,22 +66,22 @@ namespace EFramework.Asset
         public partial class Bundle
         {
             /// <summary>
-            /// 资源包的名称，用于在资源系统中唯一标识一个资源包。
+            /// Name 是资源包的名称，用于在资源系统中唯一标识一个资源包。
             /// </summary>
             public string Name { get; internal set; }
 
             /// <summary>
-            /// Unity 的 AssetBundle 对象，包含实际的资源数据。
+            /// Source 是 Unity 的 AssetBundle 对象，包含实际的资源数据。
             /// </summary>
             public AssetBundle Source { get; internal set; }
 
             /// <summary>
-            /// 资源包的引用计数，用于追踪资源包的使用情况。当计数为 0 时，资源包可以被安全卸载。
+            /// Count 是资源包的引用计数，用于追踪资源包的使用情况。当计数为 0 时，资源包可以被安全卸载。
             /// </summary>
             public int Count { get; internal set; }
 
             /// <summary>
-            /// 增加资源包的引用计数。同时会增加所有依赖资源包的引用计数。
+            /// Obtain 增加资源包的引用计数，同时会增加所有依赖资源包的引用计数。
             /// </summary>
             /// <param name="from">引用来源的描述，用于调试时追踪资源的使用情况</param>
             /// <returns>增加后的引用计数</returns>
@@ -103,7 +103,7 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 减少资源包的引用计数。当计数降为 0 时，会自动卸载资源包及其不再被引用的依赖资源。
+            /// Release 减少资源包的引用计数，当计数降为 0 时，会自动卸载资源包及其不再被引用的依赖资源。
             /// </summary>
             /// <param name="from">引用来源的描述，用于调试时追踪资源的使用情况</param>
             /// <returns>减少后的引用计数</returns>
@@ -153,17 +153,17 @@ namespace EFramework.Asset
         public partial class Bundle
         {
             /// <summary>
-            /// 表示一个异步加载任务，用于跟踪资源包的加载状态和进度。
+            /// Task 是异步加载任务，用于跟踪资源包的加载状态和进度。
             /// </summary>
             internal class Task
             {
                 /// <summary>
-                /// 正在加载的资源包名称。
+                /// Name 是正在加载的资源包名称。
                 /// </summary>
                 internal string Name;
 
                 /// <summary>
-                /// 加载的 AssetBundle 对象。
+                /// Bundle 是加载的 AssetBundle 对象。
                 /// </summary>
                 internal AssetBundle Bundle;
 
@@ -181,17 +181,17 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 记录当前正在加载的资源包，用于处理并发加载请求。
+            /// Loading 记录当前正在加载的资源包，用于处理并发加载请求。
             /// </summary>
             internal static Dictionary<string, Task> Loading = new();
 
             /// <summary>
-            /// 缓存已加载的资源包，避免重复加载相同的资源。
+            /// Loaded 缓存已加载的资源包，避免重复加载相同的资源。
             /// </summary>
             internal static Dictionary<string, Bundle> Loaded = new();
 
             /// <summary>
-            /// 同步加载资源包。如果资源包已加载，则直接返回缓存的实例。否则会加载资源包及其所有依赖。
+            /// Load 同步加载资源包。如果资源包已加载，则直接返回缓存的实例，否则会加载资源包及其所有依赖。
             /// </summary>
             /// <param name="name">要加载的资源包名称</param>
             /// <returns>加载的资源包，如果加载失败则返回 null</returns>
@@ -304,7 +304,7 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 异步加载资源包。支持同时加载多个资源包，并通过 handler 参数报告加载进度。
+            /// LoadAsync 异步加载资源包。支持同时加载多个资源包，并通过 handler 参数报告加载进度。
             /// </summary>
             /// <param name="name">要加载的资源包名称</param>
             /// <param name="handler">用于跟踪和报告加载进度的处理器</param>
@@ -428,7 +428,7 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 卸载指定的资源包。这会减少资源包的引用计数，当计数为 0 时自动释放资源。
+            /// Unload 卸载指定的资源包。这会减少资源包的引用计数，当计数为 0 时自动释放资源。
             /// </summary>
             /// <param name="name">要卸载的资源包名称</param>
             public static void Unload(string name)
@@ -440,7 +440,7 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// 在已加载的资源包中查找指定名称的资源包。这个操作不会触发加载过程。
+            /// Find 在已加载的资源包中查找指定名称的资源包。
             /// </summary>
             /// <param name="name">要查找的资源包名称</param>
             /// <returns>找到的资源包，如果未找到则返回 null</returns>

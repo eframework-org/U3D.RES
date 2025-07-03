@@ -25,105 +25,103 @@ namespace EFramework.Asset
         public partial class Prefs : XPrefs.Panel
         {
             /// <summary>
-            /// Bundle 模式开关的配置键。
+            /// BundleMode 是 Bundle 模式开关的配置键。
             /// 启用后将从打包的资源文件加载资源，否则使用Resources加载。
             /// </summary>
             public const string BundleMode = "Asset/BundleMode";
 
             /// <summary>
-            /// Bundle 模式的默认值，默认开启以支持资源打包加载。
+            /// BundleModeDefault 是 Bundle 模式的默认值，默认开启以支持资源打包加载。
             /// </summary>
             public const bool BundleModeDefault = true;
 
             /// <summary>
-            /// 引用计数模式的配置键。
+            /// ReferMode 是引用计数模式的配置键。
             /// 启用后会自动跟踪资源引用，确保资源正确释放。
             /// </summary>
             public const string ReferMode = "Asset/ReferMode";
 
             /// <summary>
-            /// 引用计数模式的默认值，默认开启以防止资源泄漏
+            /// ReferModeDefault 是引用计数模式的默认值，默认开启以防止资源泄漏
             /// </summary>
             public const bool ReferModeDefault = true;
 
             /// <summary>
-            /// 调试模式的配置键。
+            /// DebugMode 是调试模式的配置键。
             /// 启用后会输出详细的资源加载和释放日志。
             /// </summary>
             public const string DebugMode = "Asset/DebugMode";
 
             /// <summary>
-            /// 编辑器模拟模式的配置键。
+            /// SimulateMode 是编辑器模拟模式的配置键。
             /// 在编辑器中可以模拟Bundle模式的资源加载，方便测试。
             /// </summary>
             public const string SimulateMode = "Asset/SimulateMode@Editor";
 
             /// <summary>
-            /// Bundle 文件偏移的配置键。
+            /// OffsetFactor 是 Bundle 文件偏移的配置键。
             /// </summary>
             public const string OffsetFactor = "Asset/OffsetFactor";
 
             /// <summary>
-            /// Bundle 文件偏移的默认值。
+            /// OffsetFactorDefault 是 Bundle 文件偏移的默认值。
             /// </summary>
             public const int OffsetFactorDefault = 4;
 
             /// <summary>
-            /// 资源包文件名的配置键。
+            /// AssetUri 是资源包文件名的配置键。
             /// 用于指定打包后的资源文件名称。
             /// </summary>
             public const string AssetUri = "Asset/AssetUri";
 
             /// <summary>
-            /// 资源包的默认文件名。
+            /// AssetUriDefault 是资源包的默认文件名。
             /// </summary>
             public const string AssetUriDefault = "Patch@Assets.zip";
 
             /// <summary>
-            /// 本地资源路径的配置键。
-            /// 指定资源文件在本地存储的相对路径。
+            /// LocalUri 是本地资源路径的配置键，指定资源文件在本地存储的相对路径。
             /// </summary>
             public const string LocalUri = "Asset/LocalUri";
 
             /// <summary>
-            /// 本地资源的默认存储路径。
+            /// LocalUriDefault 是本地资源的默认存储路径。
             /// </summary>
             public const string LocalUriDefault = "Assets";
 
             /// <summary>
-            /// 远程资源地址的配置键。
-            /// 用于指定资源更新的远程服务器地址。
+            /// RemoteUri 是远程资源地址的配置键，用于指定资源更新的远程服务器地址。
             /// </summary>
             public const string RemoteUri = "Asset/RemoteUri";
 
             /// <summary>
-            /// 远程资源的默认下载地址，支持变量求值。
+            /// RemoteUriDefault 是远程资源的默认下载地址，支持变量求值。
             /// </summary>
             public const string RemoteUriDefault = "Builds/Patch/${Env.Author}/${Env.Version}/${Env.Platform}/Assets";
 
 #if UNITY_EDITOR
             /// <summary>
-            /// 在配置面板中的分类名称。
+            /// Section 是配置面板中的分类名称。
             /// </summary>
             public override string Section => "Asset";
 
             /// <summary>
-            /// 在配置面板中的工具提示。
+            /// Tooltip 是配置面板中的工具提示。
             /// </summary>
             public override string Tooltip => "Preferences of Asset.";
 
             /// <summary>
-            /// 在配置面板中的显示顺序。
+            /// Priority 是配置面板中的显示顺序。
             /// </summary>
             public override int Priority => 100;
 
             /// <summary>
-            /// 控制配置面板中分组的展开/折叠状态。
+            /// foldout 控制配置面板中分组的展开/折叠状态。
             /// </summary>
             [SerializeField] protected bool foldout;
 
             /// <summary>
-            /// 绘制配置界面，提供资源系统各项设置的可视化编辑功能。
+            /// OnVisualize 绘制配置界面，提供资源系统各项设置的可视化编辑功能。
             /// 包括运行模式切换、调试选项设置、资源路径配置等。
             /// 当Bundle模式关闭时，相关选项会自动置灰。
             /// </summary>
