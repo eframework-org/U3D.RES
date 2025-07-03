@@ -82,33 +82,33 @@ namespace EFramework.Asset
             /// <param name="loadMode">场景加载模式：Single 会卸载当前场景，Additive 则保留当前场景</param>
             public static void Load(string nameOrPath, LoadSceneMode loadMode = LoadSceneMode.Single)
             {
-                var sname = nameOrPath.Contains("/") ? Path.GetFileNameWithoutExtension(nameOrPath) : nameOrPath;
-                try { Event.Notify(EventType.OnPreLoadScene, sname); }
+                var sceneName = nameOrPath.Contains("/") ? Path.GetFileNameWithoutExtension(nameOrPath) : nameOrPath;
+                try { Event.Notify(EventType.OnPreLoadScene, sceneName); }
                 catch (Exception e) { XLog.Panic(e); }
 
-                XLog.Info("XAsset.Scene.Load: start to load {0}, cached-ab: {1}", sname, Bundle.Loaded.Count);
+                XLog.Info("XAsset.Scene.Load: start to load {0}, cached-ab: {1}", sceneName, Bundle.Loaded.Count);
                 try
                 {
                     if (Const.BundleMode && Manifest.Main)
                     {
-                        string bname;
+                        string bundleName;
                         if (nameOrPath.Contains("/"))
                         {
                             if (nameOrPath.StartsWith("Assets/")) nameOrPath = nameOrPath["Assets/".Length..];
                             if (!nameOrPath.EndsWith(".unity")) nameOrPath += "_unity";
-                            bname = Const.GenTag(nameOrPath);
+                            bundleName = Const.GenTag(nameOrPath);
                         }
-                        else bname = $"scenes_{sname}_unity{Const.Extension}".ToLower();
-                        if (Bundle.Load(bname) == null) XLog.Error("XAsset.Scene.Load: can not load scene caused by nil scene bundle file.");
-                        else SceneManager.LoadScene(sname, loadMode);
+                        else bundleName = $"scenes_{sceneName}_unity{Const.Extension}".ToLower();
+                        if (Bundle.Load(bundleName) == null) XLog.Error("XAsset.Scene.Load: can not load scene caused by nil scene bundle file.");
+                        else SceneManager.LoadScene(sceneName, loadMode);
                     }
-                    else SceneManager.LoadScene(sname, loadMode);
+                    else SceneManager.LoadScene(sceneName, loadMode);
                 }
                 catch (Exception e) { throw e; }
                 finally
                 {
-                    XLog.Info("XAsset.Scene.Load: finish to load {0}, cached-ab: {1}", sname, Bundle.Loaded.Count);
-                    try { Event.Notify(EventType.OnPostLoadScene, sname); }
+                    XLog.Info("XAsset.Scene.Load: finish to load {0}, cached-ab: {1}", sceneName, Bundle.Loaded.Count);
+                    try { Event.Notify(EventType.OnPostLoadScene, sceneName); }
                     catch (Exception e) { XLog.Panic(e); }
                 }
             }
@@ -122,7 +122,7 @@ namespace EFramework.Asset
             /// <returns>用于跟踪加载进度的Handler对象</returns>
             public static Handler LoadAsync(string nameOrPath, Action callback = null, LoadSceneMode loadMode = LoadSceneMode.Single)
             {
-                Handler handler = new Handler();
+                var handler = new Handler();
                 if (callback != null) handler.OnPostload += callback;
                 XLoom.StartCR(LoadAsync(nameOrPath, handler, loadMode));
                 return handler;
@@ -141,36 +141,36 @@ namespace EFramework.Asset
             /// <returns>协程。</returns>
             internal static IEnumerator LoadAsync(string nameOrPath, Handler handler, LoadSceneMode loadMode = LoadSceneMode.Single)
             {
-                var sname = nameOrPath.Contains("/") ? Path.GetFileNameWithoutExtension(nameOrPath) : nameOrPath;
-                try { Event.Notify(EventType.OnPreLoadScene, sname); }
+                var sceneName = nameOrPath.Contains("/") ? Path.GetFileNameWithoutExtension(nameOrPath) : nameOrPath;
+                try { Event.Notify(EventType.OnPreLoadScene, sceneName); }
                 catch (Exception e) { XLog.Panic(e); }
 
                 XLog.Info("XAsset.Scene.LoadAsync: start to load {0}, cached-ab: {1}", nameOrPath, Bundle.Loaded.Count);
                 if (Const.BundleMode && Manifest.Main)
                 {
                     handler.totalCount++; // Load任务
-                    string bname;
+                    string bundleName;
                     if (nameOrPath.Contains("/"))
                     {
                         if (nameOrPath.StartsWith("Assets/")) nameOrPath = nameOrPath["Assets/".Length..];
                         if (!nameOrPath.EndsWith(".unity")) nameOrPath += "_unity";
-                        bname = Const.GenTag(nameOrPath);
+                        bundleName = Const.GenTag(nameOrPath);
                     }
-                    else bname = $"scenes_{sname}_unity{Const.Extension}".ToLower();
-                    yield return XLoom.StartCR(Bundle.LoadAsync(bname, handler));
-                    if (Bundle.Find(bname) != null)
+                    else bundleName = $"scenes_{sceneName}_unity{Const.Extension}".ToLower();
+                    yield return XLoom.StartCR(Bundle.LoadAsync(bundleName, handler));
+                    if (Bundle.Find(bundleName) != null)
                     {
-                        if (!Loading.TryGetValue(sname, out var task))
+                        if (!Loading.TryGetValue(sceneName, out var task))
                         {
-                            var req = SceneManager.LoadSceneAsync(sname, loadMode);
-                            task = new Task() { Name = sname, Operation = req };
+                            var req = SceneManager.LoadSceneAsync(sceneName, loadMode);
+                            task = new Task() { Name = sceneName, Operation = req };
                             handler.Operation = req;
                             handler.InvokePreload();
-                            Loading.Add(sname, task);
+                            Loading.Add(sceneName, task);
                             yield return new WaitUntil(() => task.Operation.isDone);
-                            Loading.Remove(sname);
+                            Loading.Remove(sceneName);
                             handler.doneCount++;
-                            XLog.Info("XAsset.Scene.LoadAsync: finish to load {0}, cached-ab: {1}", sname, Bundle.Loaded.Count);
+                            XLog.Info("XAsset.Scene.LoadAsync: finish to load {0}, cached-ab: {1}", sceneName, Bundle.Loaded.Count);
                             handler.InvokePostload();
                         }
                         else
@@ -179,13 +179,13 @@ namespace EFramework.Asset
                             handler.InvokePreload();
                             yield return new WaitUntil(() => task.Operation.isDone);
                             handler.doneCount++;
-                            XLog.Info("XAsset.Scene.LoadAsync: finish to load {0}, cached-ab: {1}", sname, Bundle.Loaded.Count);
+                            XLog.Info("XAsset.Scene.LoadAsync: finish to load {0}, cached-ab: {1}", sceneName, Bundle.Loaded.Count);
                             handler.InvokePostload();
                         }
                     }
                     else
                     {
-                        XLog.Error("XAsset.Scene.LoadAsync: async load error: {0}", sname);
+                        XLog.Error("XAsset.Scene.LoadAsync: async load error: {0}", sceneName);
 
                         // 加载错误时仍旧回调，业务层可根据 handler.Error 判断是否加载成功
                         handler.Error = true;
@@ -194,17 +194,17 @@ namespace EFramework.Asset
                 }
                 else
                 {
-                    if (!Loading.TryGetValue(sname, out var task))
+                    if (!Loading.TryGetValue(sceneName, out var task))
                     {
-                        var req = SceneManager.LoadSceneAsync(sname, loadMode);
+                        var req = SceneManager.LoadSceneAsync(sceneName, loadMode);
                         if (req != null)
                         {
-                            task = new Task() { Name = sname, Operation = req };
+                            task = new Task() { Name = sceneName, Operation = req };
                             handler.Operation = req;
                             handler.InvokePreload();
-                            Loading.Add(sname, task);
+                            Loading.Add(sceneName, task);
                             yield return new WaitUntil(() => task.Operation.isDone);
-                            Loading.Remove(sname);
+                            Loading.Remove(sceneName);
                             handler.InvokePostload();
                         }
                         else
@@ -226,7 +226,7 @@ namespace EFramework.Asset
                     }
                 }
 
-                try { Event.Notify(EventType.OnPostLoadScene, sname); }
+                try { Event.Notify(EventType.OnPostLoadScene, sceneName); }
                 catch (Exception e) { XLog.Panic(e); }
             }
 
@@ -236,20 +236,35 @@ namespace EFramework.Asset
             /// <param name="nameOrPath">要卸载的场景名称或路径</param>
             public static void Unload(string nameOrPath)
             {
-                var sname = nameOrPath.Contains("/") ? Path.GetFileNameWithoutExtension(nameOrPath) : nameOrPath;
+                var sceneName = nameOrPath.Contains("/") ? Path.GetFileNameWithoutExtension(nameOrPath) : nameOrPath;
                 if (Const.BundleMode && Manifest.Main)
                 {
-                    XLog.Info("XAsset.Scene.Unload: start to unload {0}, cached-ab: {1}", sname, Bundle.Loaded.Count);
-                    string bname;
+                    XLog.Info("XAsset.Scene.Unload: start to unload {0}, cached-ab: {1}", sceneName, Bundle.Loaded.Count);
+                    string bundleName;
                     if (nameOrPath.Contains("/"))
                     {
                         if (nameOrPath.StartsWith("Assets/")) nameOrPath = nameOrPath["Assets/".Length..];
                         if (!nameOrPath.EndsWith(".unity")) nameOrPath += "_unity";
-                        bname = Const.GenTag(nameOrPath);
+                        bundleName = Const.GenTag(nameOrPath);
                     }
-                    else bname = $"scenes_{sname}_unity{Const.Extension}".ToLower();
-                    Bundle.Unload(bname);
-                    XLog.Info("XAsset.Scene.Unload: finish to unload {0}, cached-ab: {1}", sname, Bundle.Loaded.Count);
+                    else bundleName = $"scenes_{sceneName}_unity{Const.Extension}".ToLower();
+                    Bundle.Unload(bundleName);
+                    XLog.Info("XAsset.Scene.Unload: finish to unload {0}, cached-ab: {1}", sceneName, Bundle.Loaded.Count);
+                }
+            }
+
+            /// <summary>
+            /// IsLoading 检查场景的加载状态。
+            /// </summary>
+            /// <param name="path">场景名称或路径</param>
+            /// <returns>是否正在加载</returns>
+            public static bool IsLoading(string nameOrPath)
+            {
+                if (string.IsNullOrEmpty(nameOrPath)) return false;
+                else
+                {
+                    var sceneName = nameOrPath.Contains("/") ? Path.GetFileNameWithoutExtension(nameOrPath) : nameOrPath;
+                    return Loading.ContainsKey(sceneName);
                 }
             }
         }

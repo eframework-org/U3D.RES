@@ -281,6 +281,17 @@ namespace EFramework.Asset
             {
                 if (Const.BundleMode) Bundle.Unload(Const.GenTag(path));
             }
+
+            /// <summary>
+            /// IsLoading 检查资源的加载状态。
+            /// </summary>
+            /// <param name="path">资源路径</param>
+            /// <returns>是否正在加载</returns>
+            public static bool IsLoading(string path)
+            {
+                if (string.IsNullOrEmpty(path)) return false;
+                else return Loading.ContainsKey(path);
+            }
         }
     }
 }

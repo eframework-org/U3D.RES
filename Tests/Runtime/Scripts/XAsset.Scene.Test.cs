@@ -127,5 +127,19 @@ public class TestXAssetScene
 
         LogAssert.ignoreFailingMessages = false;
     }
+
+    [Test]
+    public void IsLoading()
+    {
+        XAsset.Scene.Loading.Clear();
+
+        XAsset.Scene.Loading.Add("TestIsLoading", new XAsset.Scene.Task());
+        Assert.IsTrue(XAsset.Scene.IsLoading("TestIsLoading"), "应当返回正在加载。");
+        Assert.IsFalse(XAsset.Scene.IsLoading(null), "应当返回未正在加载。");
+        Assert.IsFalse(XAsset.Scene.IsLoading(string.Empty), "应当返回未正在加载。");
+        Assert.IsFalse(XAsset.Scene.IsLoading("Invalid"), "应当返回未正在加载。");
+
+        XAsset.Scene.Loading.Clear();
+    }
 }
 #endif

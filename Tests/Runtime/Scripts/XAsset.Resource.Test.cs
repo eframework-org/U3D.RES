@@ -101,5 +101,19 @@ public class TestXAssetResource
 
         LogAssert.ignoreFailingMessages = false;
     }
+
+    [Test]
+    public void IsLoading()
+    {
+        Resource.Loading.Clear();
+
+        Resource.Loading.Add("TestIsLoading", new Resource.Task());
+        Assert.IsTrue(Resource.IsLoading("TestIsLoading"), "应当返回正在加载。");
+        Assert.IsFalse(Resource.IsLoading(null), "应当返回未正在加载。");
+        Assert.IsFalse(Resource.IsLoading(string.Empty), "应当返回未正在加载。");
+        Assert.IsFalse(Resource.IsLoading("Invalid"), "应当返回未正在加载。");
+
+        Resource.Loading.Clear();
+    }
 }
 #endif
