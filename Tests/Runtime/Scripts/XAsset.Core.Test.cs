@@ -76,7 +76,7 @@ public class TestXAssetCore
             handler.Reset();
             Assert.AreEqual(0, handler.doneCount, "doneCount应重置为0。");
             Assert.AreEqual(0, handler.totalCount, "totalCount应重置为0。");
-            Assert.IsNull(handler.Operation, "Operation应重置为null。");
+            Assert.IsNull(handler.Request, "Request应重置为null。");
             preloadWasCalled = false;
             postloadWasCalled = false;
             handler.InvokePreload();

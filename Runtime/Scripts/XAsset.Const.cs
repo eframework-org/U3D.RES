@@ -111,7 +111,7 @@ namespace EFramework.Asset
             {
                 get
                 {
-                    if (bBundleMode == false)
+                    if (!bBundleMode)
                     {
                         bBundleMode = true;
                         bundleMode = XPrefs.GetBool(Prefs.BundleMode, Prefs.BundleModeDefault) && (!Application.isEditor || XPrefs.GetBool(Prefs.SimulateMode));
@@ -138,7 +138,7 @@ namespace EFramework.Asset
             {
                 get
                 {
-                    if (bReferMode == false)
+                    if (!bReferMode)
                     {
                         bReferMode = true;
                         referMode = BundleMode && XPrefs.GetBool(Prefs.ReferMode, Prefs.ReferModeDefault);
@@ -165,7 +165,7 @@ namespace EFramework.Asset
             {
                 get
                 {
-                    if (bDebugMode == false)
+                    if (!bDebugMode)
                     {
                         bDebugMode = true;
                         debugMode = BundleMode && XPrefs.GetBool(Prefs.DebugMode);
@@ -192,7 +192,7 @@ namespace EFramework.Asset
             {
                 get
                 {
-                    if (bLocalPath == false)
+                    if (!bLocalPath)
                     {
                         bLocalPath = true;
                         localPath = XFile.PathJoin(XEnv.LocalPath, XPrefs.GetString(Prefs.LocalUri, Prefs.LocalUriDefault));

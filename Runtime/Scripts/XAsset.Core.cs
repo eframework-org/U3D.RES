@@ -86,12 +86,12 @@ namespace EFramework.Asset
                 {
                     if (totalCount == 0 || totalCount == 1)
                     {
-                        if (Operation != null) return Operation.progress;
+                        if (Request != null) return Request.progress;
                         else return 0f;
                     }
                     else
                     {
-                        if (Operation != null && !Operation.isDone) return (doneCount + Operation.progress) / totalCount;
+                        if (Request != null && !Request.isDone) return (doneCount + Request.progress) / totalCount;
                         else return doneCount / (float)totalCount;
                     }
                 }
@@ -108,10 +108,10 @@ namespace EFramework.Asset
             public event Action OnPostload;
 
             /// <summary>
-            /// Operation 是 Unity 的异步操作对象。
+            /// Request 是 Unity 的异步操作对象。
             /// 可能是 ResourceRequest 或 AssetBundleRequest，用于跟踪具体的加载进度。
             /// </summary>
-            public AsyncOperation Operation;
+            public AsyncOperation Request;
 
             /// <summary>
             /// Asset 获取加载完成的资源对象。
@@ -121,10 +121,10 @@ namespace EFramework.Asset
             {
                 get
                 {
-                    if (Operation != null)
+                    if (Request != null)
                     {
-                        if (Operation is ResourceRequest) return (Operation as ResourceRequest).asset;
-                        else if (Operation is AssetBundleRequest) return (Operation as AssetBundleRequest).asset;
+                        if (Request is ResourceRequest) return (Request as ResourceRequest).asset;
+                        else if (Request is AssetBundleRequest) return (Request as AssetBundleRequest).asset;
                     }
                     return null;
                 }
@@ -140,7 +140,7 @@ namespace EFramework.Asset
             /// <summary>
             /// IsDone 检查资源是否已完成加载。
             /// </summary>
-            public bool IsDone { get => Error || (Operation != null && Operation.isDone); }
+            public bool IsDone { get => Error || (Request != null && Request.isDone); }
 
             /// <summary>
             /// MoveNext 推进加载进程。
@@ -151,7 +151,7 @@ namespace EFramework.Asset
             /// <summary>
             /// Reset 重置加载器状态，清空所有计数器和事件监听，使其可以重新用于新的加载任务。
             /// </summary>
-            public void Reset() { doneCount = 0; totalCount = 0; OnPreload = null; OnPostload = null; Operation = null; Error = false; }
+            public void Reset() { doneCount = 0; totalCount = 0; OnPreload = null; OnPostload = null; Request = null; Error = false; }
 
             /// <summary>
             /// InvokePreload 触发预加载事件，并安全处理可能的异常。
@@ -254,10 +254,9 @@ namespace EFramework.Asset
 
                     if (Const.BundleMode)
                     {
-                        if (Const.ReferMode)
-                        {
-                            Object.Cleanup();
-                        }
+                        XLog.Info("XAsset.OnInit: start to cleanup by scene: {0} unloaded, cached bundle count: {1}.", scene.name, Bundle.Loaded.Count);
+                        if (Const.ReferMode) Object.Cleanup();
+                        XLog.Info("XAsset.OnInit: finish to cleanup by scene: {0} unloaded, cached bundle count: {1}.", scene.name, Bundle.Loaded.Count);
 
                         foreach (var kvp in Scene.Loaded) Scene.Unload(kvp.Value);
                         Scene.Loaded.Clear();

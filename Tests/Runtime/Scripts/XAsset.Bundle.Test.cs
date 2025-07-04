@@ -3,11 +3,11 @@
 // license that can be found in the LICENSE file.
 
 #if UNITY_INCLUDE_TESTS
+using System.Collections;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using System.Collections;
-using System.Text.RegularExpressions;
 using EFramework.Asset;
 using static EFramework.Asset.XAsset;
 
@@ -79,7 +79,7 @@ public class TestXAssetBundle
         // 测试加载不存在的bundle
         LogAssert.Expect(LogType.Error, new Regex(".*Unable to open archive.*"));
         LogAssert.Expect(LogType.Error, new Regex(".*Failed to read data for the AssetBundle.*"));
-        LogAssert.Expect(LogType.Error, new Regex(".*sync load main-ab error.*"));
+        LogAssert.Expect(LogType.Error, new Regex(".*sync load main bundle error.*"));
         var noneBundleName = "non_existent_bundle.bundle";
         var noneBundle = Bundle.Load(noneBundleName);
 

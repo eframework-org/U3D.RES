@@ -41,14 +41,14 @@ public class TestXAssetPublish
         Assert.AreEqual(report.Result, XEditor.Tasks.Result.Succeeded, "资源发布应当成功");
 
         var manifestUrl = $"{XPrefs.Asset.GetString(XAsset.Publish.Prefs.Host)}/{XPrefs.Asset.GetString(XAsset.Publish.Prefs.Bucket)}/{XPrefs.Asset.GetString(XAsset.Publish.Prefs.RemoteUri)}/{XMani.Default}";
-        var req = UnityWebRequest.Get(manifestUrl);
-        req.timeout = 10;
-        req.SendWebRequest();
-        while (!req.isDone) { }
-        Assert.IsTrue(req.responseCode == 200, "资源清单应当请求成功");
+        var request = UnityWebRequest.Get(manifestUrl);
+        request.timeout = 10;
+        request.SendWebRequest();
+        while (!request.isDone) { }
+        Assert.IsTrue(request.responseCode == 200, "资源清单应当请求成功");
 
         var manifest = new XMani.Manifest();
-        Assert.IsTrue(manifest.Parse(req.downloadHandler.text, out _), "资源清单应当读取成功");
+        Assert.IsTrue(manifest.Parse(request.downloadHandler.text, out _), "资源清单应当读取成功");
     }
 }
 #endif

@@ -60,9 +60,9 @@ namespace EFramework.Asset
                 internal string Name;
 
                 /// <summary>
-                /// Operation 是 Unity 场景加载的异步操作对象。
+                /// Request 是 Unity 场景加载的异步操作对象。
                 /// </summary>
-                internal AsyncOperation Operation;
+                internal AsyncOperation Request;
             }
 
             /// <summary>
@@ -86,7 +86,6 @@ namespace EFramework.Asset
                 try { Event.Notify(EventType.OnPreLoadScene, sceneName); }
                 catch (Exception e) { XLog.Panic(e); }
 
-                XLog.Info("XAsset.Scene.Load: start to load {0}, cached-ab: {1}", sceneName, Bundle.Loaded.Count);
                 try
                 {
                     if (Const.BundleMode && Manifest.Main)
@@ -107,7 +106,6 @@ namespace EFramework.Asset
                 catch (Exception e) { throw e; }
                 finally
                 {
-                    XLog.Info("XAsset.Scene.Load: finish to load {0}, cached-ab: {1}", sceneName, Bundle.Loaded.Count);
                     try { Event.Notify(EventType.OnPostLoadScene, sceneName); }
                     catch (Exception e) { XLog.Panic(e); }
                 }
@@ -145,7 +143,6 @@ namespace EFramework.Asset
                 try { Event.Notify(EventType.OnPreLoadScene, sceneName); }
                 catch (Exception e) { XLog.Panic(e); }
 
-                XLog.Info("XAsset.Scene.LoadAsync: start to load {0}, cached-ab: {1}", nameOrPath, Bundle.Loaded.Count);
                 if (Const.BundleMode && Manifest.Main)
                 {
                     handler.totalCount++; // Load任务
@@ -162,24 +159,22 @@ namespace EFramework.Asset
                     {
                         if (!Loading.TryGetValue(sceneName, out var task))
                         {
-                            var req = SceneManager.LoadSceneAsync(sceneName, loadMode);
-                            task = new Task() { Name = sceneName, Operation = req };
-                            handler.Operation = req;
+                            var request = SceneManager.LoadSceneAsync(sceneName, loadMode);
+                            task = new Task() { Name = sceneName, Request = request };
+                            handler.Request = request;
                             handler.InvokePreload();
                             Loading.Add(sceneName, task);
-                            yield return new WaitUntil(() => task.Operation.isDone);
+                            yield return new WaitUntil(() => task.Request.isDone);
                             Loading.Remove(sceneName);
                             handler.doneCount++;
-                            XLog.Info("XAsset.Scene.LoadAsync: finish to load {0}, cached-ab: {1}", sceneName, Bundle.Loaded.Count);
                             handler.InvokePostload();
                         }
                         else
                         {
-                            handler.Operation = task.Operation;
+                            handler.Request = task.Request;
                             handler.InvokePreload();
-                            yield return new WaitUntil(() => task.Operation.isDone);
+                            yield return new WaitUntil(() => task.Request.isDone);
                             handler.doneCount++;
-                            XLog.Info("XAsset.Scene.LoadAsync: finish to load {0}, cached-ab: {1}", sceneName, Bundle.Loaded.Count);
                             handler.InvokePostload();
                         }
                     }
@@ -196,14 +191,14 @@ namespace EFramework.Asset
                 {
                     if (!Loading.TryGetValue(sceneName, out var task))
                     {
-                        var req = SceneManager.LoadSceneAsync(sceneName, loadMode);
-                        if (req != null)
+                        var request = SceneManager.LoadSceneAsync(sceneName, loadMode);
+                        if (request != null)
                         {
-                            task = new Task() { Name = sceneName, Operation = req };
-                            handler.Operation = req;
+                            task = new Task() { Name = sceneName, Request = request };
+                            handler.Request = request;
                             handler.InvokePreload();
                             Loading.Add(sceneName, task);
-                            yield return new WaitUntil(() => task.Operation.isDone);
+                            yield return new WaitUntil(() => task.Request.isDone);
                             Loading.Remove(sceneName);
                             handler.InvokePostload();
                         }
@@ -219,9 +214,9 @@ namespace EFramework.Asset
                     }
                     else
                     {
-                        handler.Operation = task.Operation;
+                        handler.Request = task.Request;
                         handler.InvokePreload();
-                        yield return new WaitUntil(() => task.Operation.isDone);
+                        yield return new WaitUntil(() => task.Request.isDone);
                         handler.InvokePostload();
                     }
                 }
@@ -239,7 +234,6 @@ namespace EFramework.Asset
                 var sceneName = nameOrPath.Contains("/") ? Path.GetFileNameWithoutExtension(nameOrPath) : nameOrPath;
                 if (Const.BundleMode && Manifest.Main)
                 {
-                    XLog.Info("XAsset.Scene.Unload: start to unload {0}, cached-ab: {1}", sceneName, Bundle.Loaded.Count);
                     string bundleName;
                     if (nameOrPath.Contains("/"))
                     {
@@ -249,7 +243,6 @@ namespace EFramework.Asset
                     }
                     else bundleName = $"scenes_{sceneName}_unity{Const.Extension}".ToLower();
                     Bundle.Unload(bundleName);
-                    XLog.Info("XAsset.Scene.Unload: finish to unload {0}, cached-ab: {1}", sceneName, Bundle.Loaded.Count);
                 }
             }
 

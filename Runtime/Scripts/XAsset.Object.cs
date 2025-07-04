@@ -132,12 +132,12 @@ namespace EFramework.Asset
             /// Release 释放指定游戏对象持有的资源。
             /// 只能用于未实例化的资源，比如从 Resources 或 AssetBundle 直接加载的对象。
             /// </summary>
-            /// <param name="go">要释放资源的游戏对象</param>
-            public static void Release(GameObject go)
+            /// <param name="gameObject">要释放资源的游戏对象</param>
+            public static void Release(GameObject gameObject)
             {
-                if (go && Const.ReferMode)
+                if (gameObject && Const.ReferMode)
                 {
-                    var obj = go.GetComponent<Object>();
+                    var obj = gameObject.GetComponent<Object>();
                     if (obj)
                     {
                         if (obj.Count > 0)
@@ -157,12 +157,12 @@ namespace EFramework.Asset
             /// Obtain 手动引用指定游戏对象的资源。
             /// 只能用于未实例化的资源，通常用于需要确保资源不被卸载的场景。
             /// </summary>
-            /// <param name="go">要引用资源的游戏对象</param>
-            public static void Obtain(GameObject go)
+            /// <param name="gameObject">要引用资源的游戏对象</param>
+            public static void Obtain(GameObject gameObject)
             {
-                if (go && Const.ReferMode)
+                if (gameObject && Const.ReferMode)
                 {
-                    var obj = go.GetComponent<Object>();
+                    var obj = gameObject.GetComponent<Object>();
                     if (obj)
                     {
                         if (obj.Count > 0)
@@ -206,7 +206,7 @@ namespace EFramework.Asset
                                     {
                                         if (obj != null)
                                         {
-                                            XLog.Warn("XAsset.Object.Cleanup: object of {0} is still alive, but dep-ab: {1} was unloaded, use XAsset.Object.Obtain to keep reference.", obj.Label, obj.Source);
+                                            XLog.Warn("XAsset.Object.Cleanup: object of {0} is still alive, but depend bundle: {1} was unloaded, use XAsset.Object.Obtain to keep reference.", obj.Label, obj.Source);
                                         }
                                     }
                                 }

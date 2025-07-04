@@ -17,7 +17,7 @@ XAsset.Object 通过引用计数机制跟踪资源（Prefab）实例（GameObjec
 - 功能说明：释放指定游戏对象持有的资源
 - 方法签名：
 ```csharp
-public static void Release(GameObject go)
+public static void Release(GameObject gameObject)
 ```
 - 使用示例：
 ```csharp
@@ -28,7 +28,7 @@ XAsset.Object.Release(testGameObject);
 - 功能说明：手动引用指定游戏对象的资源，防止资源被卸载
 - 方法签名：
 ```csharp
-public static void Obtain(GameObject go)
+public static void Obtain(GameObject gameObject)
 ```
 - 使用示例：
 ```csharp

@@ -65,20 +65,20 @@ namespace EFramework.Asset
         public partial class Resource
         {
             /// <summary>
-            /// 异步加载任务的封装，用于跟踪单个资源的加载状态。
-            /// 可以处理来自 Resources 和 AssetBundle 的异步加载请求。
+            /// Task 是异步加载的任务，用于跟踪单个资源的加载状态。
+            /// 处理来自 Resources 和 AssetBundle 的异步加载请求。
             /// </summary>
             internal class Task
             {
                 /// <summary>
-                /// 正在加载的资源路径
+                /// Name 是正在加载的资源路径。
                 /// </summary>
                 internal string Name;
 
                 /// <summary>
-                /// Unity的异步加载操作对象，可能是 ResourceRequest 或 AssetBundleRequest。
+                /// Request 是 Unity 的异步加载操作对象，可能是 ResourceRequest 或 AssetBundleRequest。
                 /// </summary>
-                internal AsyncOperation Operation;
+                internal AsyncOperation Request;
             }
 
             /// <summary>
@@ -103,23 +103,23 @@ namespace EFramework.Asset
                 UnityEngine.Object asset = null;
                 try
                 {
-                    var resIdx = path.IndexOf("Resources/");
+                    var resourceIndex = path.IndexOf("Resources/");
                     if (!Const.BundleMode || resource || !Manifest.Main)
                     {
-                        if (resIdx >= 0) path = path[(resIdx + 10)..];
+                        if (resourceIndex >= 0) path = path[(resourceIndex + 10)..];
                         asset = Resources.Load(path, type);
                     }
                     else
                     {
-                        if (resIdx < 0) path = "Resources/" + path;
-                        var index = path.LastIndexOf("/");
-                        var assetName = path[(index + 1)..];
+                        if (resourceIndex < 0) path = "Resources/" + path;
+                        var lastPart = path.LastIndexOf("/");
+                        var assetName = path[(lastPart + 1)..];
                         var bundleName = Const.GenTag(path);
                         var bundle = Bundle.Load(bundleName);
                         if (bundle != null) asset = bundle.Source.LoadAsset(assetName, type);
-                        if (Const.ReferMode && asset is GameObject go)
+                        if (Const.ReferMode && asset is GameObject gameObject)
                         {
-                            go.AddComponent<Object>().Source = bundleName;
+                            gameObject.AddComponent<Object>().Source = bundleName;
                         }
                     }
                 }
@@ -186,27 +186,27 @@ namespace EFramework.Asset
                 catch (Exception e) { XLog.Panic(e); }
 
                 UnityEngine.Object asset = null;
-                var resIdx = path.IndexOf("Resources/");
+                var resourceIndex = path.IndexOf("Resources/");
                 if (!Const.BundleMode || resource || !Manifest.Main)
                 {
-                    if (resIdx >= 0) path = path[(resIdx + 10)..];
+                    if (resourceIndex >= 0) path = path[(resourceIndex + 10)..];
                     if (!Loading.TryGetValue(path, out var task))
                     {
-                        var req = Resources.LoadAsync(path, type);
-                        task = new Task() { Name = path, Operation = req };
-                        handler.Operation = req;
+                        var request = Resources.LoadAsync(path, type);
+                        task = new Task() { Name = path, Request = request };
+                        handler.Request = request;
                         handler.InvokePreload();
                         Loading.Add(path, task);
-                        yield return new WaitUntil(() => task.Operation.isDone);
+                        yield return new WaitUntil(() => task.Request.isDone);
                         Loading.Remove(path);
                     }
                     else
                     {
-                        handler.Operation = task.Operation;
+                        handler.Request = task.Request;
                         handler.InvokePreload();
-                        yield return new WaitUntil(() => task.Operation.isDone);
+                        yield return new WaitUntil(() => task.Request.isDone);
                     }
-                    asset = (task.Operation as ResourceRequest).asset;
+                    asset = (task.Request as ResourceRequest).asset;
 
                     // 加载错误时仍旧回调，业务层可根据 handler.Error 判断是否加载成功
                     handler.Error = asset == null;
@@ -215,9 +215,9 @@ namespace EFramework.Asset
                 else
                 {
                     handler.totalCount++; // Load任务
-                    if (resIdx < 0) path = "Resources/" + path;
-                    var index = path.LastIndexOf("/");
-                    var assetName = path[(index + 1)..];
+                    if (resourceIndex < 0) path = "Resources/" + path;
+                    var lastPart = path.LastIndexOf("/");
+                    var assetName = path[(lastPart + 1)..];
                     var bundleName = Const.GenTag(path);
                     yield return XLoom.StartCR(Bundle.LoadAsync(bundleName, handler));
                     var bundleInfo = Bundle.Find(bundleName);
@@ -225,34 +225,34 @@ namespace EFramework.Asset
                     {
                         if (!Loading.TryGetValue(path, out var task))
                         {
-                            var req = bundleInfo.Source.LoadAssetAsync(assetName, type);
-                            task = new Task() { Name = path, Operation = req };
-                            handler.Operation = req;
+                            var request = bundleInfo.Source.LoadAssetAsync(assetName, type);
+                            task = new Task() { Name = path, Request = request };
+                            handler.Request = request;
                             handler.InvokePreload();
                             Loading.Add(path, task);
-                            yield return req;
-                            asset = req.asset;
+                            yield return request;
+                            asset = request.asset;
                             Loading.Remove(path);
                             handler.doneCount++;
-                            if (Const.ReferMode && asset is GameObject go)
+                            if (Const.ReferMode && asset is GameObject gameObject)
                             {
-                                go.AddComponent<Object>().Source = bundleName;
+                                gameObject.AddComponent<Object>().Source = bundleName;
                             }
                             handler.InvokePostload();
                         }
                         else
                         {
-                            handler.Operation = task.Operation;
+                            handler.Request = task.Request;
                             handler.InvokePreload();
-                            yield return new WaitUntil(() => task.Operation.isDone);
+                            yield return new WaitUntil(() => task.Request.isDone);
                             handler.doneCount++;
-                            if (Const.ReferMode && asset is GameObject go)
+                            if (Const.ReferMode && asset is GameObject gameObject)
                             {
-                                go.AddComponent<Object>().Source = bundleName;
+                                gameObject.AddComponent<Object>().Source = bundleName;
                             }
                             handler.InvokePostload();
                         }
-                        asset = (task.Operation as AssetBundleRequest).asset;
+                        asset = (task.Request as AssetBundleRequest).asset;
                     }
                     else
                     {
