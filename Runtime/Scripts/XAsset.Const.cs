@@ -11,13 +11,13 @@ namespace EFramework.Asset
     public partial class XAsset
     {
         /// <summary>
-        /// XAsset.Const 提供了一些常量定义和运行时环境控制，包括运行配置和标签生成等功能。
+        /// XAsset.Const 提供了一些常量定义和运行时环境控制，包括运行配置和 Bundle 名称生成、偏移计算等功能。
         /// </summary>
         /// <remarks>
         /// <code>
         /// 功能特性
         /// - 运行配置：提供 Bundle 模式、调试模式和资源路径等配置
-        /// - 标签生成：提供资源路径的标准化处理和标签生成
+        /// - 名称生成：提供资源路径的处理并生成归一化的 Bundle 名称
         ///
         /// 使用手册
         /// 1. 运行配置
@@ -52,14 +52,14 @@ namespace EFramework.Asset
         ///      string localPath = XAsset.Const.LocalPath;
         ///      </code>
         ///
-        /// 2. 标签生成
+        /// 2. 名称生成
         ///    - 配置项：默认扩展名
         ///      <code>
         ///      public const string Extension = ".bundle";
         ///      </code>
         ///
         ///    - 配置项：生成规则
-        ///      生成资源的标签名称，规则如下：
+        ///      生成资源名称的规则如下：
         ///      1. 将路径分隔符替换为下划线
         ///      2. 移除特殊字符
         ///      3. 转换为小写
@@ -68,7 +68,7 @@ namespace EFramework.Asset
         ///      使用示例：
         ///      <code>
         ///      string assetPath = "Resources/Example/Test.prefab";
-        ///      string tag = XAsset.Const.GenTag(assetPath);
+        ///      string bundleName = XAsset.Const.GetName(assetPath);
         ///      // 输出: assets_example_test.bundle
         ///      </code>
         ///
@@ -202,7 +202,7 @@ namespace EFramework.Asset
             }
             #endregion
 
-            #region 标签生成
+            #region 生成名称
             /// <summary>
             /// Extension 是资源包文件的默认扩展名，用于标识打包后的资源文件。
             /// </summary>
@@ -233,18 +233,20 @@ namespace EFramework.Asset
             /// <returns>转换后的资源名称，已处理特殊字符并添加扩展名</returns>
             public static string GetName(string assetPath)
             {
-                if (nameCache.TryGetValue(assetPath, out var tag)) return tag;
+                if (nameCache.TryGetValue(assetPath, out var bundleName)) return bundleName;
                 else
                 {
-                    var bundleName = assetPath.Replace("/", "_").Replace("\\", "_");
-                    foreach (var item in escapeChars) bundleName = bundleName.Replace(item.Key, item.Value);
+                    bundleName = assetPath.Replace("/", "_").Replace("\\", "_");
+                    foreach (var escape in escapeChars) bundleName = bundleName.Replace(escape.Key, escape.Value);
                     bundleName += Extension;
                     bundleName = bundleName.ToLower();
                     nameCache[assetPath] = bundleName;
                     return bundleName;
                 }
             }
+            #endregion
 
+            #region 计算偏移
             /// <summary>
             /// bOffsetFactor 是 offsetFactor 的初始化标记。
             /// </summary>

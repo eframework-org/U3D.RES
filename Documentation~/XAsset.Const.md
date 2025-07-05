@@ -4,12 +4,12 @@
 [![Downloads](https://img.shields.io/npm/dm/org.eframework.u3d.res)](https://www.npmjs.com/package/org.eframework.u3d.res)
 [![DeepWiki](https://img.shields.io/badge/DeepWiki-Explore-blue)](https://deepwiki.com/eframework-org/U3D.RES)
 
-XAsset.Const 提供了一些常量定义和运行时环境控制，包括运行配置和标签生成等功能。
+XAsset.Const 提供了一些常量定义和运行时环境控制，包括运行配置和 Bundle 名称生成、偏移计算等功能。
 
 ## 功能特性
 
 - 运行配置：提供 Bundle 模式、调试模式和资源路径等配置
-- 标签生成：提供资源路径的标准化处理和标签生成
+- 名称生成：提供资源路径的处理并生成归一化的 Bundle 名称
 
 ## 使用手册
 
@@ -46,7 +46,7 @@ bool isDebugMode = XAsset.Const.DebugMode;
 string localPath = XAsset.Const.LocalPath;
 ```
 
-### 2. 标签生成
+### 2. 名称生成
 
 #### 2.1 默认扩展名
 ```csharp
@@ -54,7 +54,7 @@ public const string Extension = ".bundle";
 ```
 
 #### 2.2 生成规则
-生成资源的标签名称，规则如下：
+生成资源名称的规则如下：
 1. 将路径分隔符替换为下划线
 2. 移除特殊字符
 3. 转换为小写
@@ -63,7 +63,7 @@ public const string Extension = ".bundle";
 使用示例：
 ```csharp
 string assetPath = "Resources/Example/Test.prefab";
-string tag = XAsset.Const.GenTag(assetPath);
+string bundleName = XAsset.Const.GetName(assetPath);
 // 输出: assets_example_test.bundle
 ```
 
