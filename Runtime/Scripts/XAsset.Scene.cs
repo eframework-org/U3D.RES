@@ -88,7 +88,7 @@ namespace EFramework.Asset
 
                 try
                 {
-                    if (Const.BundleMode && Manifest.Main)
+                    if (Const.BundleMode && Bundle.Manifest)
                     {
                         string bundleName;
                         if (nameOrPath.Contains("/"))
@@ -143,7 +143,7 @@ namespace EFramework.Asset
                 try { Event.Notify(EventType.OnPreLoadScene, sceneName); }
                 catch (Exception e) { XLog.Panic(e); }
 
-                if (Const.BundleMode && Manifest.Main)
+                if (Const.BundleMode && Bundle.Manifest)
                 {
                     handler.totalCount++; // Load任务
                     string bundleName;
@@ -232,7 +232,7 @@ namespace EFramework.Asset
             public static void Unload(string nameOrPath)
             {
                 var sceneName = nameOrPath.Contains("/") ? Path.GetFileNameWithoutExtension(nameOrPath) : nameOrPath;
-                if (Const.BundleMode && Manifest.Main)
+                if (Const.BundleMode && Bundle.Manifest)
                 {
                     string bundleName;
                     if (nameOrPath.Contains("/"))

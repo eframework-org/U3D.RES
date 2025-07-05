@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 
 using System;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -87,7 +88,7 @@ namespace EFramework.Asset
             /// <returns>增加后的引用计数</returns>
             public int Obtain(string from = "")
             {
-                var dependencies = Manifest.Main.GetAllDependencies(Name);
+                var dependencies = Manifest.GetAllDependencies(Name);
                 foreach (var dependency in dependencies)
                 {
                     if (Name == dependency) continue;
@@ -109,7 +110,7 @@ namespace EFramework.Asset
             /// <returns>减少后的引用计数</returns>
             public int Release(string from = "")
             {
-                var dependencies = Manifest.Main.GetAllDependencies(Name);
+                var dependencies = Manifest.GetAllDependencies(Name);
                 if (dependencies != null && dependencies.Length > 0)
                 {
                     for (var i = 0; i < dependencies.Length; i++)
@@ -194,6 +195,55 @@ namespace EFramework.Asset
             internal static Dictionary<string, Bundle> Loaded = new();
 
             /// <summary>
+            /// Files 是 Bundle 文件的列表。
+            /// </summary>
+            internal static List<XMani.FileInfo> Files;
+
+            /// <summary>
+            /// Manifest 是 Bundle 依赖的清单。
+            /// </summary>
+            internal static AssetBundleManifest Manifest;
+
+            /// <summary>
+            /// manifestBundle 保持了 AssetBundleManifest 所在 Bundle 的引用。
+            /// </summary>
+            private static AssetBundle manifestBundle;
+
+            /// <summary>
+            /// Initialize 初始化 Bundle 的清单文件，如果存在旧的清单会先卸载它。
+            /// 仅适用于 Bundle 模式，这个清单文件对于资源的正确加载是必需的。
+            /// </summary>
+            public static void Initialize()
+            {
+                if (Const.BundleMode)
+                {
+                    try
+                    {
+                        if (manifestBundle)
+                        {
+                            manifestBundle.Unload(true);
+                            XLog.Notice("XAsset.Bundle.Initialize: previous manifest has been unloaded.");
+                        }
+                    }
+                    catch (Exception e) { XLog.Panic(e, "XAsset.Bundle.Initialize: unload manifest failed."); }
+
+                    var file = XFile.PathJoin(Const.LocalPath, Const.Manifest);
+                    if (XFile.HasFile(file))
+                    {
+                        try
+                        {
+                            manifestBundle = AssetBundle.LoadFromFile(file, 0, Const.GetOffset(Const.Manifest));
+                            Manifest = manifestBundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
+                            XLog.Notice("XAsset.Bundle.Initialize: load <a href=\"file:///{0}\">{1}</a> succeeded.", Path.GetFullPath(file), Path.GetRelativePath(XEnv.ProjectPath, file));
+                        }
+                        catch (Exception e) { XLog.Panic(e, "XAsset.Bundle.Initialize: load <a href=\"file:///{0}\">{1}</a> failed.".Format(Path.GetFullPath(file), Path.GetRelativePath(XEnv.ProjectPath, file))); }
+                    }
+                    else XLog.Warn("XAsset.Bundle.Initialize: load failed because of non exist file: {0}.", Path.GetRelativePath(XEnv.ProjectPath, file));
+                }
+                else Manifest = null;
+            }
+
+            /// <summary>
             /// Load 同步加载资源包。如果资源包已加载，则直接返回缓存的实例，否则会加载资源包及其所有依赖。
             /// </summary>
             /// <param name="name">要加载的资源包名称</param>
@@ -202,7 +252,7 @@ namespace EFramework.Asset
             {
                 if (!Loaded.TryGetValue(name, out var bundleInfo))
                 {
-                    var dependencies = Manifest.Main.GetAllDependencies(name);
+                    var dependencies = Manifest.GetAllDependencies(name);
                     if (dependencies != null && dependencies.Length > 0)
                     {
                         var breakDependency = -1;
@@ -316,7 +366,7 @@ namespace EFramework.Asset
             {
                 if (!Loaded.TryGetValue(name, out Bundle info))
                 {
-                    var dependencies = Manifest.Main.GetAllDependencies(name);
+                    var dependencies = Manifest.GetAllDependencies(name);
                     handler.totalCount += dependencies.Length + 1; // Self and Dependency
                     if (dependencies != null && dependencies.Length > 0)
                     {

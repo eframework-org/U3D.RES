@@ -20,7 +20,7 @@ public class TestXAssetObject
     public void Init()
     {
         Const.bundleMode = true;
-        Manifest.Load();
+        Bundle.Initialize();
     }
 
     [OneTimeTearDown]
@@ -29,7 +29,7 @@ public class TestXAssetObject
         AssetBundle.UnloadAllAssetBundles(true);
         Bundle.Loaded.Clear();
         Const.bBundleMode = false;
-        Manifest.Load();
+        Bundle.Initialize();
     }
 
     [SetUp]

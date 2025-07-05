@@ -16,7 +16,7 @@ public class TestXAssetResource
     public void Init()
     {
         Const.bundleMode = true;
-        Manifest.Load();
+        Bundle.Initialize();
     }
 
     [OneTimeTearDown]
@@ -25,7 +25,7 @@ public class TestXAssetResource
         AssetBundle.UnloadAllAssetBundles(true);
         Bundle.Loaded.Clear();
         Const.bBundleMode = false;
-        Manifest.Load();
+        Bundle.Initialize();
     }
 
     [TestCase(true)]

@@ -18,7 +18,7 @@ public class TestXAssetBundle
     public void Setup()
     {
         Const.bundleMode = true;
-        Manifest.Load();
+        Bundle.Initialize();
     }
 
     [TearDown]
@@ -27,7 +27,17 @@ public class TestXAssetBundle
         AssetBundle.UnloadAllAssetBundles(true);
         Bundle.Loaded.Clear();
         Const.bBundleMode = false;
-        Manifest.Load();
+        Bundle.Initialize();
+    }
+
+    [TestCase(true)]
+    [TestCase(false)]
+    public void Initialize(bool bundleMode)
+    {
+        Const.bundleMode = bundleMode;
+        Bundle.Initialize();
+        if (bundleMode) Assert.IsNotNull(Bundle.Manifest, "Bundle 模式下 Manifest 应该被加载且不为空。");
+        else Assert.IsNull(Bundle.Manifest, "非 Bundle 模式下 Manifest 应保持为空。");
     }
 
     [Test]

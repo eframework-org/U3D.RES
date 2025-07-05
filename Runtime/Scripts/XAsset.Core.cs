@@ -234,7 +234,7 @@ namespace EFramework.Asset
             if (!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode) return;
 #endif
 
-            Manifest.Load();
+            Bundle.Initialize();
 
             SceneManager.sceneLoaded += (scene, mode) =>
             {

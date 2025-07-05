@@ -9,6 +9,7 @@
 - 新增 Build Assets 和 Publish Assets 任务配置项的 GUI 面板显示
 - 移除 XAsset.Utility 的 Loading 函数并重构为 XAsset.Resource/Scene.IsLoading
 - 新增 Asset/SecretKey 资源清单内容密钥配置项
+- 移除 XAsset.Manifest 模块，耦合其功能至 XAsset.Bundle 模块中
 
 ## [0.0.8] - 2025-06-17
 ### 变更

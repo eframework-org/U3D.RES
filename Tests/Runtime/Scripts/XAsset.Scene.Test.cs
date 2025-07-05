@@ -23,7 +23,7 @@ public class TestXAssetScene
     public void Init()
     {
         Const.bundleMode = true;
-        Manifest.Load();
+        Bundle.Initialize();
 
         var scenes = EditorBuildSettings.scenes.ToList();
         var scene = new EditorBuildSettingsScene
@@ -42,7 +42,7 @@ public class TestXAssetScene
         AssetBundle.UnloadAllAssetBundles(true);
         Bundle.Loaded.Clear();
         Const.bBundleMode = false;
-        Manifest.Load();
+        Bundle.Initialize();
 
         var scenes = EditorBuildSettings.scenes.ToList();
         scenes.RemoveAll(ele => ele.path == TestScene);

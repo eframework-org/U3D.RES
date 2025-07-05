@@ -17,7 +17,7 @@ public class TestXAssetCore
     public void Init()
     {
         Const.bundleMode = true;
-        Manifest.Load();
+        Bundle.Initialize();
     }
 
     [OneTimeTearDown]
@@ -26,7 +26,7 @@ public class TestXAssetCore
         AssetBundle.UnloadAllAssetBundles(true);
         Bundle.Loaded.Clear();
         Const.bBundleMode = false;
-        Manifest.Load();
+        Bundle.Initialize();
     }
 
     [UnityTest]
@@ -39,7 +39,7 @@ public class TestXAssetCore
         {
             Const.bundleMode = bundleMode;
             // 测试Progress
-            var handler = new XAsset.Handler
+            var handler = new Handler
             {
                 totalCount = 5,
                 doneCount = 2
@@ -48,27 +48,27 @@ public class TestXAssetCore
             Assert.AreEqual(0.4f, progress, "Progress应该被正确计算。");
 
             // 测试IsDone
-            handler = XAsset.Resource.LoadAsync("Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube", typeof(GameObject));
+            handler = Resource.LoadAsync("Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube", typeof(GameObject));
             Assert.IsFalse(handler.IsDone, "当Operation未完成时，IsDone应为false。");
             yield return handler;
             Assert.IsTrue(handler.IsDone, "当Operation完成时，IsDone应为true。");
 
-            handler = XAsset.Resource.LoadAsync("NotExist", typeof(GameObject));
+            handler = Resource.LoadAsync("NotExist", typeof(GameObject));
             yield return handler;
             Assert.IsTrue(handler.Error, "当加载不存在的资源时，Error应为true。");
 
             // 测试MoveNext
-            handler = XAsset.Resource.LoadAsync("Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube", typeof(GameObject));
+            handler = Resource.LoadAsync("Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube", typeof(GameObject));
             Assert.AreNotEqual(handler.MoveNext(), handler.IsDone, "当Operation不为空时，MoveNext应为true。");
             yield return handler;
 
             // 测试Preload 和 Postload
-            handler = new XAsset.Handler();
+            handler = new Handler();
             bool preloadWasCalled = false;
             bool postloadWasCalled = false;
             handler.OnPreload += () => preloadWasCalled = true;
             handler.OnPostload += () => postloadWasCalled = true;
-            yield return XAsset.Resource.LoadAsync("Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube", typeof(GameObject), null, handler);
+            yield return Resource.LoadAsync("Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube", typeof(GameObject), null, handler);
             Assert.IsTrue(preloadWasCalled, "OnPreload事件应被调用。");
             Assert.IsTrue(postloadWasCalled, "OnPostload事件应被调用。");
 

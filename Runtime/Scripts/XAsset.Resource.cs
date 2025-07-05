@@ -104,7 +104,7 @@ namespace EFramework.Asset
                 try
                 {
                     var resourceIndex = path.IndexOf("Resources/");
-                    if (!Const.BundleMode || resource || !Manifest.Main)
+                    if (!Const.BundleMode || resource || !Bundle.Manifest)
                     {
                         if (resourceIndex >= 0) path = path[(resourceIndex + 10)..];
                         asset = Resources.Load(path, type);
@@ -187,7 +187,7 @@ namespace EFramework.Asset
 
                 UnityEngine.Object asset = null;
                 var resourceIndex = path.IndexOf("Resources/");
-                if (!Const.BundleMode || resource || !Manifest.Main)
+                if (!Const.BundleMode || resource || !Bundle.Manifest)
                 {
                     if (resourceIndex >= 0) path = path[(resourceIndex + 10)..];
                     if (!Loading.TryGetValue(path, out var task))
