@@ -221,26 +221,26 @@ namespace EFramework.Asset
             };
 
             /// <summary>
-            /// tagCache 是资源标签缓存，用于提高重复标签生成的性能。
+            /// nameCache 是资源名称的缓存，用于提高重复名称生成的性能。
             /// </summary>
-            internal static readonly Dictionary<string, string> tagCache = new();
+            internal static readonly Dictionary<string, string> nameCache = new();
 
             /// <summary>
-            /// GenTag 根据资源路径生成唯一的资源标签。
-            /// 这个标签将用作资源包的文件名，会自动处理路径中的特殊字符并确保生成的名称符合文件系统规范。
+            /// GetName 根据资源路径生成唯一的资源名称。
+            /// 这个名称可用作资源包的文件名，会自动处理路径中的特殊字符并确保生成的名称符合文件系统规范。
             /// </summary>
             /// <param name="assetPath">需要转换的资源路径</param>
-            /// <returns>转换后的资源标签，已处理特殊字符并添加扩展名</returns>
-            public static string GenTag(string assetPath)
+            /// <returns>转换后的资源名称，已处理特殊字符并添加扩展名</returns>
+            public static string GetName(string assetPath)
             {
-                if (tagCache.TryGetValue(assetPath, out var tag)) return tag;
+                if (nameCache.TryGetValue(assetPath, out var tag)) return tag;
                 else
                 {
                     var bundleName = assetPath.Replace("/", "_").Replace("\\", "_");
                     foreach (var item in escapeChars) bundleName = bundleName.Replace(item.Key, item.Value);
                     bundleName += Extension;
                     bundleName = bundleName.ToLower();
-                    tagCache[assetPath] = bundleName;
+                    nameCache[assetPath] = bundleName;
                     return bundleName;
                 }
             }

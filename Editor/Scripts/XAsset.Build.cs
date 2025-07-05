@@ -341,10 +341,10 @@ namespace EFramework.Asset.Editor
                         var assetImporter = AssetImporter.GetAtPath(asset);
                         if (assetImporter)
                         {
-                            var tag = Const.GenTag(asset.StartsWith("Assets/") ? asset["Assets/".Length..] : asset);
-                            if (tag.Contains(".unity")) tag = tag.Replace(".unity", "_unity"); // 场景文件只能单独打包
-                            else tag = tag.Replace(Path.GetExtension(asset), "");
-                            if (!fileBundles.TryGetValue(tag, out var deps)) { deps = new List<string>(); fileBundles.Add(tag, deps); }
+                            var bundleName = Const.GetName(asset.StartsWith("Assets/") ? asset["Assets/".Length..] : asset);
+                            if (bundleName.Contains(".unity")) bundleName = bundleName.Replace(".unity", "_unity"); // 场景文件只能单独打包
+                            else bundleName = bundleName.Replace(Path.GetExtension(asset), "");
+                            if (!fileBundles.TryGetValue(bundleName, out var deps)) { deps = new List<string>(); fileBundles.Add(bundleName, deps); }
                             if (!deps.Contains(asset)) deps.Add(asset);
                         }
                     }
@@ -379,25 +379,25 @@ namespace EFramework.Asset.Editor
                                     var assetImporter = AssetImporter.GetAtPath(asset);
                                     if (assetImporter)
                                     {
-                                        string tag;
+                                        string bundleName;
                                         List<string> deps;
                                         if (!string.IsNullOrEmpty(assetImporter.assetBundleName))
                                         {
-                                            tag = assetImporter.assetBundleName;
-                                            XLog.Debug("XAsset.Build.GenDependency: using custom asset tag '{0}' for '{1}'", tag, asset);
-                                            if (!customBundles.TryGetValue(tag, out deps)) { deps = new List<string>(); customBundles.Add(tag, deps); }
+                                            bundleName = assetImporter.assetBundleName;
+                                            XLog.Debug("XAsset.Build.GenDependency: using custom bundle name: {0} for asset: {1}.", bundleName, asset);
+                                            if (!customBundles.TryGetValue(bundleName, out deps)) { deps = new List<string>(); customBundles.Add(bundleName, deps); }
                                             if (!deps.Contains(asset)) deps.Add(asset);
                                         }
                                         else
                                         {
-                                            var skip = assetImporter is ShaderImporter || asset.EndsWith(".shadergraph"); // Force merge material.
+                                            var skip = assetImporter is ShaderImporter || asset.EndsWith(".shadergraph"); // 强制合并材质，避免着色器变体丢失
                                             if (!skip && XPrefs.GetBool(Prefs.MergeMaterial, Prefs.MergeMaterialDefault)) skip = asset.EndsWith(".mat") && key.EndsWith(".unity");
                                             if (skip) continue;
                                             else
                                             {
                                                 var dir = XFile.NormalizePath(Path.GetDirectoryName(asset));
-                                                tag = Const.GenTag(dir.StartsWith("Assets/") ? dir["Assets/".Length..] : dir);
-                                                if (!dirBundles.TryGetValue(tag, out deps)) { deps = new List<string>(); dirBundles.Add(tag, deps); }
+                                                bundleName = Const.GetName(dir.StartsWith("Assets/") ? dir["Assets/".Length..] : dir);
+                                                if (!dirBundles.TryGetValue(bundleName, out deps)) { deps = new List<string>(); dirBundles.Add(bundleName, deps); }
                                                 if (!deps.Contains(asset)) deps.Add(asset);
                                             }
                                         }

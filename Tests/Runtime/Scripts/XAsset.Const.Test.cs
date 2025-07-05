@@ -14,20 +14,20 @@ public class TestXAssetConst
     [TestCase("Assets/Textures/My#Texture")]    // 包含#号
     [TestCase("Assets/Textures/My[Texture]")]   // 包含方括号
     [TestCase("Assets\\Textures\\MyTexture")]   // 包含反斜杠
-    public void Tag(string path)
+    public void Name(string path)
     {
         // Arrange
-        var expectedTag = "assets_textures_mytexture.bundle";
+        var expectedName = "assets_textures_mytexture.bundle";
         // 清空缓存以确保测试的准确性
-        Const.tagCache.Clear();
+        Const.nameCache.Clear();
 
         // Act
-        var tag = Const.GenTag(path);
+        var name = Const.GetName(path);
 
         // Assert
-        Assert.AreEqual(expectedTag, tag, "生成的标签应符合预期格式。");
-        Assert.IsTrue(Const.tagCache.ContainsKey(path), "资源路径在首次调用后应被缓存。");
-        Assert.AreEqual(1, Const.tagCache.Count, "缓存应该只包含一个条目。");
+        Assert.AreEqual(expectedName, name, "生成的标签应符合预期格式。");
+        Assert.IsTrue(Const.nameCache.ContainsKey(path), "资源路径在首次调用后应被缓存。");
+        Assert.AreEqual(1, Const.nameCache.Count, "缓存应该只包含一个条目。");
     }
 
     [TestCase(true, true, true)]

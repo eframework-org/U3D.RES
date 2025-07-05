@@ -95,7 +95,7 @@ namespace EFramework.Asset
                         {
                             if (nameOrPath.StartsWith("Assets/")) nameOrPath = nameOrPath["Assets/".Length..];
                             if (!nameOrPath.EndsWith(".unity")) nameOrPath += "_unity";
-                            bundleName = Const.GenTag(nameOrPath);
+                            bundleName = Const.GetName(nameOrPath);
                         }
                         else bundleName = $"scenes_{sceneName}_unity{Const.Extension}".ToLower();
                         if (Bundle.Load(bundleName) == null) XLog.Error("XAsset.Scene.Load: can not load scene caused by nil scene bundle file.");
@@ -151,7 +151,7 @@ namespace EFramework.Asset
                     {
                         if (nameOrPath.StartsWith("Assets/")) nameOrPath = nameOrPath["Assets/".Length..];
                         if (!nameOrPath.EndsWith(".unity")) nameOrPath += "_unity";
-                        bundleName = Const.GenTag(nameOrPath);
+                        bundleName = Const.GetName(nameOrPath);
                     }
                     else bundleName = $"scenes_{sceneName}_unity{Const.Extension}".ToLower();
                     yield return XLoom.StartCR(Bundle.LoadAsync(bundleName, handler));
@@ -239,7 +239,7 @@ namespace EFramework.Asset
                     {
                         if (nameOrPath.StartsWith("Assets/")) nameOrPath = nameOrPath["Assets/".Length..];
                         if (!nameOrPath.EndsWith(".unity")) nameOrPath += "_unity";
-                        bundleName = Const.GenTag(nameOrPath);
+                        bundleName = Const.GetName(nameOrPath);
                     }
                     else bundleName = $"scenes_{sceneName}_unity{Const.Extension}".ToLower();
                     Bundle.Unload(bundleName);

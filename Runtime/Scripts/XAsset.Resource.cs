@@ -114,7 +114,7 @@ namespace EFramework.Asset
                         if (resourceIndex < 0) path = "Resources/" + path;
                         var lastPart = path.LastIndexOf("/");
                         var assetName = path[(lastPart + 1)..];
-                        var bundleName = Const.GenTag(path);
+                        var bundleName = Const.GetName(path);
                         var bundle = Bundle.Load(bundleName);
                         if (bundle != null) asset = bundle.Source.LoadAsset(assetName, type);
                         if (Const.ReferMode && asset is GameObject gameObject)
@@ -218,7 +218,7 @@ namespace EFramework.Asset
                     if (resourceIndex < 0) path = "Resources/" + path;
                     var lastPart = path.LastIndexOf("/");
                     var assetName = path[(lastPart + 1)..];
-                    var bundleName = Const.GenTag(path);
+                    var bundleName = Const.GetName(path);
                     yield return XLoom.StartCR(Bundle.LoadAsync(bundleName, handler));
                     var bundleInfo = Bundle.Find(bundleName);
                     if (bundleInfo != null)
@@ -279,7 +279,7 @@ namespace EFramework.Asset
             /// <param name="path">要卸载的资源路径</param>
             public static void Unload(string path)
             {
-                if (Const.BundleMode) Bundle.Unload(Const.GenTag(path));
+                if (Const.BundleMode) Bundle.Unload(Const.GetName(path));
             }
 
             /// <summary>
