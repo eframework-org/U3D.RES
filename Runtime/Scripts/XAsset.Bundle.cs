@@ -185,21 +185,6 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// Loading 记录当前正在加载的资源包，用于处理并发加载请求。
-            /// </summary>
-            internal static Dictionary<string, Task> Loading = new();
-
-            /// <summary>
-            /// Loaded 缓存已加载的资源包，避免重复加载相同的资源。
-            /// </summary>
-            internal static Dictionary<string, Bundle> Loaded = new();
-
-            /// <summary>
-            /// Files 是 Bundle 文件的列表。
-            /// </summary>
-            internal static List<XMani.FileInfo> Files;
-
-            /// <summary>
             /// Manifest 是 Bundle 依赖的清单。
             /// </summary>
             internal static AssetBundleManifest Manifest;
@@ -208,6 +193,16 @@ namespace EFramework.Asset
             /// manifestBundle 保持了 AssetBundleManifest 所在 Bundle 的引用。
             /// </summary>
             private static AssetBundle manifestBundle;
+
+            /// <summary>
+            /// Loading 记录当前正在加载的资源包，用于处理并发加载请求。
+            /// </summary>
+            internal static Dictionary<string, Task> Loading = new();
+
+            /// <summary>
+            /// Loaded 缓存已加载的资源包，避免重复加载相同的资源。
+            /// </summary>
+            internal static Dictionary<string, Bundle> Loaded = new();
 
             /// <summary>
             /// Initialize 初始化 Bundle 的清单文件，如果存在旧的清单会先卸载它。
