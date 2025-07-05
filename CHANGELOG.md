@@ -11,6 +11,9 @@
 - 移除 Manifest 模块，耦合其功能至 Bundle 模块中
 - 修改 Const.GenTag 函数为 Const.GetName
 
+### 修复
+- 修复取消资源构建引起的 Asset Bundle 文件偏移错乱的问题
+
 ## [0.0.8] - 2025-06-17
 ### 变更
 - 移除 XAsset.Utility.Progress 函数（该指标无实际意义）

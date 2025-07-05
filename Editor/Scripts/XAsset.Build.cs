@@ -187,7 +187,7 @@ namespace EFramework.Asset.Editor
             /// <summary>
             /// Preprocess 构建前的准备工作，包括创建输出目录和备份当前资源清单。
             /// </summary>
-            /// <param name="report">构建报告对象，用于记录构建过程中的信息</param>
+            /// <param name="report">构建报告对象</param>
             public override void Preprocess(XEditor.Tasks.Report report)
             {
                 buildDir = XFile.NormalizePath(XPrefs.GetString(Prefs.Output, Prefs.OutputDefault).Eval(XEnv.Vars));
@@ -202,7 +202,7 @@ namespace EFramework.Asset.Editor
             /// <summary>
             /// Process 执行资源构建过程，分析依赖关系并生成 AssetBundle 文件。
             /// </summary>
-            /// <param name="report">构建报告对象，用于记录构建过程中的信息</param>
+            /// <param name="report">构建报告对象</param>
             public override void Process(XEditor.Tasks.Report report)
             {
                 var bundles = GenDependency();
@@ -231,11 +231,11 @@ namespace EFramework.Asset.Editor
             /// <summary>
             /// Postprocess 构建后的收尾工作，生成新的资源清单并输出构建报告。
             /// </summary>
-            /// <param name="report">构建报告对象，用于记录构建过程中的信息</param>
+            /// <param name="report">构建报告对象</param>
             public override void Postprocess(XEditor.Tasks.Report report)
             {
                 GenManifest(report);
-                GenSummary();
+                GenSummary(report);
             }
 
             /// <summary>
@@ -463,18 +463,31 @@ namespace EFramework.Asset.Editor
             /// GenManifest 根据构建结果生成资源清单文件，记录每个资源包的信息（如MD5、大小等）。
             /// 这个清单文件将用于运行时的资源加载和版本检查。
             /// </summary>
-            /// <param name="_">构建报告对象，用于记录构建过程中的信息</param>
-            private void GenManifest(XEditor.Tasks.Report _)
+            /// <param name="report">构建报告对象</param>
+            private void GenManifest(XEditor.Tasks.Report report)
             {
+                if (report.Result != XEditor.Tasks.Result.Succeeded) return;
+
                 var abManifestFilePath = XFile.PathJoin(buildDir, Const.Manifest);
                 var manifestFilePath = abManifestFilePath + ".manifest";
                 var assetManifestFilePath = XFile.PathJoin(buildDir, XMani.Default);
                 if (XFile.HasFile(assetManifestFilePath)) XFile.DeleteFile(assetManifestFilePath);
                 if (XFile.HasFile(abManifestFilePath) == false)
                 {
-                    XLog.Error("XAsset.Build.GenManifest: null ab manifest.");
+                    report.Error = "No asset bundle manifest file.";
+                    XLog.Error("XAsset.Build.GenManifest: no asset bundle manifest file.");
                     return;
                 }
+
+                var bundle = AssetBundle.LoadFromFile(abManifestFilePath);
+                var manifest = bundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
+                if (manifest == null)
+                {
+                    report.Error = "Null asset bundle manifest.";
+                    XLog.Error("XAsset.Build.GenManifest: null asset bundle manifest.");
+                    return;
+                }
+
                 var fs = new FileStream(assetManifestFilePath, FileMode.OpenOrCreate);
                 var sw = new StreamWriter(fs);
                 // write ab manifest file;
@@ -493,8 +506,6 @@ namespace EFramework.Asset.Editor
                         abs.Add(line);
                     }
                 }
-                var bundle = AssetBundle.LoadFromFile(abManifestFilePath);
-                var manifest = bundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
                 var abs2 = new List<string>();
                 var count = 0;
                 while (abs.Count > 0)
@@ -508,10 +519,7 @@ namespace EFramework.Asset.Editor
                             abs.RemoveAt(i);
                             abs2.Add(ab);
                         }
-                        else
-                        {
-                            i++;
-                        }
+                        else i++;
                     }
                     count++;
                 }
@@ -532,7 +540,8 @@ namespace EFramework.Asset.Editor
             /// GenSummary 生成构建报告，记录资源变更情况并清理无效的资源文件。
             /// 通过对比新旧清单，可以了解此次构建的具体改动。
             /// </summary>
-            private void GenSummary()
+            /// <param name="report">构建报告对象，用于记录构建过程中的信息</param>
+            private void GenSummary(XEditor.Tasks.Report report)
             {
                 var tmpFile = XFile.PathJoin(buildDir, XMani.Default + ".tmp");
                 var tmpMani = new XMani.Manifest(tmpFile);
@@ -541,29 +550,28 @@ namespace EFramework.Asset.Editor
                     tmpMani.Read();
                     XFile.DeleteFile(XFile.PathJoin(buildDir, XMani.Default + ".tmp"));
                 }
+                if (report.Result != XEditor.Tasks.Result.Succeeded) return;
 
                 var maniFile = XFile.PathJoin(buildDir, XMani.Default);
                 var mani = new XMani.Manifest(maniFile);
                 mani.Read();
 
-                var differ = tmpMani.Compare(mani);
-                for (var i = 0; i < differ.Modified.Count; i++)
+                var diff = tmpMani.Compare(mani);
+                for (var i = 0; i < diff.Modified.Count; i++)
                 {
-                    var fi = differ.Modified[i];
-                    AddOffset(fi);
+                    var fi = diff.Modified[i];
                     XLog.Debug("XAsset.Build.GenSummary: {0} has been modified.", fi.Name);
                 }
 
-                for (var i = 0; i < differ.Added.Count; i++)
+                for (var i = 0; i < diff.Added.Count; i++)
                 {
-                    var fi = differ.Added[i];
-                    AddOffset(fi);
+                    var fi = diff.Added[i];
                     XLog.Debug("XAsset.Build.GenSummary: {0} has been added.", fi.Name);
                 }
 
-                for (var i = 0; i < differ.Deleted.Count; i++)
+                for (var i = 0; i < diff.Deleted.Count; i++)
                 {
-                    var fi = differ.Deleted[i];
+                    var fi = diff.Deleted[i];
                     var file = XFile.PathJoin(buildDir, fi.Name);
                     var mfile = file + ".manifest";
                     XFile.DeleteFile(file);
@@ -589,39 +597,82 @@ namespace EFramework.Asset.Editor
                 }
                 catch (Exception e) { XLog.Panic(e); }
 
-                if (differ.Modified.Count > 0 || differ.Added.Count > 0)
+                var dirty = false;
+                foreach (var fi in mani.Files)
                 {
-                    XFile.SaveText(maniFile, mani.ToString());
+                    if (GenOffset(fi)) dirty = true;
                 }
+                if (dirty) XFile.SaveText(maniFile, mani.ToString());
 
-                XLog.Debug("XAsset.Build.GenSummary: {0} asset(s) has been modified, {1} asset(s) has been added, {2} asset(s) has been deleted.", differ.Modified.Count, differ.Added.Count, differ.Deleted.Count);
+                XLog.Debug("XAsset.Build.GenSummary: {0} asset(s) has been modified, {1} asset(s) has been added, {2} asset(s) has been deleted.", diff.Modified.Count, diff.Added.Count, diff.Deleted.Count);
             }
 
             /// <summary>
-            /// AddOffset 用于偏移 Bundle 文件。
+            /// GenOffset 用于处理 Bundle 文件的偏移。
             /// </summary>
             /// <param name="fi">Bundle 文件信息</param>
-            private void AddOffset(XMani.FileInfo fi)
+            private bool GenOffset(XMani.FileInfo fi)
             {
                 var offsetFactor = XPrefs.GetInt(Prefs.OffsetFactor, Prefs.OffsetFactorDefault);
-                if (offsetFactor <= 0) return;
+                if (offsetFactor <= 0) return false;
 
                 var src = XFile.PathJoin(buildDir, fi.Name);
                 var dst = src + ".tmp";
                 if (XFile.HasFile(dst)) XFile.DeleteFile(dst);
 
                 var prefix = new byte[28];
-                var buffer = new byte[1024];
+                // 根据文件名长度计算 offsetCount，且至少偏移一个单元
+                var offsetCount = fi.Name.Length % offsetFactor + 1;
 
                 using (var fs = new FileStream(src, FileMode.Open, FileAccess.Read))
                 {
+                    // 先读 prefix
+                    var readPrefix = new byte[28];
+                    int readLen = fs.Read(readPrefix, 0, readPrefix.Length);
+                    if (readLen != prefix.Length) return false; // 文件太小，不处理
+
+                    Buffer.BlockCopy(readPrefix, 0, prefix, 0, prefix.Length);
+
+                    // 再读 offsetCount * prefix.Length 用于比对
+                    var totalCheckSize = prefix.Length * offsetCount;
+                    var checkData = new byte[totalCheckSize];
+                    readLen = fs.Read(checkData, 0, totalCheckSize);
+
+                    var alreadyOffset = true;
+                    if (readLen < totalCheckSize) alreadyOffset = false;
+                    else
+                    {
+                        for (int i = 0; i < offsetCount; i++)
+                        {
+                            for (int j = 0; j < prefix.Length; j++)
+                            {
+                                if (checkData[i * prefix.Length + j] != prefix[j])
+                                {
+                                    alreadyOffset = false;
+                                    break;
+                                }
+                            }
+                            if (!alreadyOffset) break;
+                        }
+                    }
+
+                    if (alreadyOffset) return false;
+                }
+
+                // 如果未偏移则执行偏移写入
+                var buffer = new byte[1024];
+                using (var fs = new FileStream(src, FileMode.Open, FileAccess.Read))
+                using (var sw = new FileStream(dst, FileMode.Create, FileAccess.Write))
+                {
+                    // 读取原始的 prefix
                     fs.Read(prefix, 0, prefix.Length);
 
-                    using var sw = new FileStream(dst, FileMode.Create, FileAccess.Write);
-                    var offsetCount = fi.Name.Length % offsetFactor + 1;
+                    // 写入原始的 prefix
+                    sw.Write(prefix, 0, prefix.Length);
+
+                    // 写入偏移的 prefix
                     for (var i = 0; i < offsetCount; i++) sw.Write(prefix, 0, prefix.Length);
 
-                    sw.Write(prefix, 0, prefix.Length);
                     int bytesRead;
                     while ((bytesRead = fs.Read(buffer, 0, buffer.Length)) > 0) sw.Write(buffer, 0, bytesRead);
 
@@ -633,6 +684,8 @@ namespace EFramework.Asset.Editor
                 XFile.DeleteFile(dst);
                 fi.Size = XFile.FileSize(src);
                 fi.MD5 = XFile.FileMD5(src);
+                XLog.Debug("XAsset.Build.GenOffset: add {0} prefix offset into {1}.", offsetCount, fi.Name);
+                return true;
             }
 
             /// <summary>
