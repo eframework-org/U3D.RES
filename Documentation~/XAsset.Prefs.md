@@ -21,7 +21,6 @@ XAsset.Prefs 提供了运行时的首选项管理，用于控制运行模式、�
 | 引用计数模式 | `Asset/ReferMode` | `true` | 控制是否启用引用计数模式，启用后会自动跟踪资源引用，确保资源正确释放 |
 | 调试模式 | `Asset/DebugMode` | `false` | 控制是否启用调试模式，启用后会输出详细的资源加载和释放日志 |
 | 模拟模式 | `Asset/SimulateMode@Editor` | `false` | 控制是否启用模拟模式，仅在编辑器中可用，模拟 AssetBundle 的资源加载行为 |
-| 清单密钥 | `Asset/SecretKey` | `${Env.Secret}` | 资源清单内容的密钥，用于对资源清单进行加密/解密 |
 | 文件偏移 | `Asset/OffsetFactor` | `4` | 设置资源包的头部偏移算子，用于进行简单的 AssetBundle 资源加密 |
 | 内置资源路径 | `Asset/AssetUri` | `Patch@Assets.zip` | 设置资源包的内置路径，用于打包时的处理 |
 | 本地资源路径 | `Asset/LocalUri` | `Assets` | 设置资源包的本地路径，用于运行时的加载 |

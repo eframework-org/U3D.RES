@@ -15,7 +15,6 @@ public class TestXAssetPrefs
         Assert.AreEqual(Prefs.ReferMode, "Asset/ReferMode");
         Assert.AreEqual(Prefs.DebugMode, "Asset/DebugMode");
         Assert.AreEqual(Prefs.SimulateMode, "Asset/SimulateMode@Editor");
-        Assert.AreEqual(Prefs.SecretKey, "Asset/SecretKey");
         Assert.AreEqual(Prefs.OffsetFactor, "Asset/OffsetFactor");
         Assert.AreEqual(Prefs.AssetUri, "Asset/AssetUri");
         Assert.AreEqual(Prefs.LocalUri, "Asset/LocalUri");
@@ -27,7 +26,6 @@ public class TestXAssetPrefs
     {
         Assert.AreEqual(Prefs.BundleModeDefault, true);
         Assert.AreEqual(Prefs.ReferModeDefault, true);
-        Assert.AreEqual(Prefs.SecretKeyDefault, "${Env.Secret}");
         Assert.AreEqual(Prefs.OffsetFactorDefault, 4);
         Assert.AreEqual(Prefs.AssetUriDefault, "Patch@Assets.zip");
         Assert.AreEqual(Prefs.LocalUriDefault, "Assets");

@@ -59,16 +59,6 @@ namespace EFramework.Asset
             public const string SimulateMode = "Asset/SimulateMode@Editor";
 
             /// <summary>
-            /// SecretKey 是资源清单内容的密钥，用于对资源清单进行加密/解密。
-            /// </summary>
-            public const string SecretKey = "Asset/SecretKey";
-
-            /// <summary>
-            /// SecretKeyDefault 是资源清单内容密钥的默认值。
-            /// </summary>
-            public const string SecretKeyDefault = "${Env.Secret}";
-
-            /// <summary>
             /// OffsetFactor 是 Bundle 文件偏移的配置键。
             /// </summary>
             public const string OffsetFactor = "Asset/OffsetFactor";
@@ -162,12 +152,6 @@ namespace EFramework.Asset
                 Title("Simulate", "Simulate to Load AssetBundle.");
                 var simulateMode = UnityEditor.EditorGUILayout.Toggle(Target.GetBool(SimulateMode));
                 if (bundleMode) Target.Set(SimulateMode, simulateMode);
-                UnityEditor.EditorGUILayout.EndHorizontal();
-
-                UnityEditor.EditorGUILayout.BeginHorizontal();
-                Title("Secret", "Asset Manifest Secret Key.");
-                var secretKey = UnityEditor.EditorGUILayout.TextField(Target.GetString(SecretKey, SecretKeyDefault));
-                if (bundleMode) Target.Set(SecretKey, secretKey);
                 UnityEditor.EditorGUILayout.EndHorizontal();
 
                 UnityEditor.EditorGUILayout.BeginHorizontal();
