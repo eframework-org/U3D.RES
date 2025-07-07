@@ -40,7 +40,7 @@ namespace EFramework.Asset.Editor
         /// 发布规则：
         /// - 新增文件：`文件名@MD5`
         /// - 修改文件：`文件名@MD5`
-        /// - 清单文件：`Manifest.db` 和 `Manifest.db@yyyy-MM-dd_HH-mm-ss`（用于版本回退）
+        /// - 清单文件：`Manifest.db` 和 `Manifest.db@MD5`（用于版本记录）
         /// </code>
         /// 更多信息请参考模块文档。
         /// </remarks>
@@ -223,7 +223,7 @@ namespace EFramework.Asset.Editor
                     {
                         var maniFile = XFile.PathJoin(root, XMani.Default);
                         files.Add(new string[] { maniFile, "" });
-                        files.Add(new string[] { maniFile, XTime.Format(XTime.GetTimestamp(), "yyyy-MM-dd_HH-mm-ss") });
+                        files.Add(new string[] { maniFile, XFile.FileMD5(maniFile) });
                     }
                     if (files.Count == 0)
                     {
@@ -238,9 +238,9 @@ namespace EFramework.Asset.Editor
                             var md5 = kvp[1];
                             var src = file;
                             var dst = XFile.PathJoin(Local, Path.GetRelativePath(root, file));
-                            if (string.IsNullOrEmpty(md5) == false) dst += "@" + md5; // file@md5
+                            if (!string.IsNullOrEmpty(md5)) dst += "@" + md5; // file@md5
                             var dir = Path.GetDirectoryName(dst);
-                            if (XFile.HasDirectory(dir) == false) XFile.CreateDirectory(dir);
+                            if (!XFile.HasDirectory(dir)) XFile.CreateDirectory(dir);
                             XFile.CopyFile(src, dst);
                         }
                     }
