@@ -91,7 +91,11 @@ namespace EFramework.Asset
                     }
                     else
                     {
-                        if (Request != null && !Request.isDone) return (doneCount + Request.progress) / totalCount;
+                        if (Request != null)
+                        {
+                            if (!Request.isDone) return (doneCount + Request.progress) / totalCount;
+                            else return 1f;
+                        }
                         else return doneCount / (float)totalCount;
                     }
                 }
