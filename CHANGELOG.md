@@ -1,6 +1,6 @@
 # 更新记录
 
-## [0.0.9] - 
+## [0.0.9] - 2025-07-07
 ### 变更
 - 修改 Asset/Build/Output@Editor 的默认值为 Builds/Patch/${Env.Platform}/Assets
 - 修改 Asset/Build/Include@Editor 的默认值为 ["Assets/Resources/Bundle", "Assets/Scenes/**/*.unity"]
