@@ -15,7 +15,7 @@ XAsset.Resource 提供了 Unity 资源的加载与卸载，支持自动处理依
 
 ### 1. 同步加载
 
-#### 加载资源
+#### 1.1 加载资源
 - 功能说明：根据当前模式从 `Resources` 或 `AssetBundle` 中加载资源
 - 函数参数：
   - `path`：资源路径（`string` 类型）
@@ -24,10 +24,10 @@ XAsset.Resource 提供了 Unity 资源的加载与卸载，支持自动处理依
 - 函数返回：加载的资源对象（`UnityEngine.Object` 类型），加载失败时返回 `null`
 - 使用示例：
 ```csharp
-var asset = XAsset.Resource.Load("Resources/Example/Test.prefab", typeof(GameObject));
+var asset = XAsset.Resource.Load("Example/Test.prefab", typeof(GameObject));
 ```
 
-#### 泛型加载
+#### 1.2 泛型加载
 - 功能说明：提供类型安全的资源加载方式
 - 函数参数：
   - `path`：资源路径（`string` 类型）
@@ -35,12 +35,12 @@ var asset = XAsset.Resource.Load("Resources/Example/Test.prefab", typeof(GameObj
 - 函数返回：加载的资源对象（`T` 类型），加载失败时返回 `null`
 - 使用示例：
 ```csharp
-var asset = XAsset.Resource.Load<GameObject>("Resources/Example/Test.prefab");
+var asset = XAsset.Resource.Load<GameObject>("Example/Test.prefab");
 ```
 
 ### 2. 异步加载
 
-#### 加载资源
+#### 2.1 加载资源
 - 功能说明：异步加载资源，适合加载大型资源
 - 函数参数：
   - `path`：资源路径（`string` 类型）
@@ -50,13 +50,13 @@ var asset = XAsset.Resource.Load<GameObject>("Resources/Example/Test.prefab");
 - 函数返回：用于跟踪加载进度的 `Handler` 对象
 - 使用示例：
 ```csharp
-XAsset.Resource.LoadAsync("Resources/Example/Test.prefab", typeof(GameObject), (asset) =>
+XAsset.Resource.LoadAsync("Example/Test.prefab", typeof(GameObject), (asset) =>
 {
     Debug.Log("加载完成：" + asset.name);
 });
 ```
 
-#### 泛型加载
+#### 2.2 泛型加载
 - 功能说明：提供类型安全的异步加载方式
 - 函数参数：
   - `path`：资源路径（`string` 类型）
@@ -65,7 +65,7 @@ XAsset.Resource.LoadAsync("Resources/Example/Test.prefab", typeof(GameObject), (
 - 函数返回：用于跟踪加载进度的 `Handler` 对象
 - 使用示例：
 ```csharp
-XAsset.Resource.LoadAsync<GameObject>("Resources/Example/Test.prefab", (asset) =>
+XAsset.Resource.LoadAsync<GameObject>("Example/Test.prefab", (asset) =>
 {
     Debug.Log("加载完成：" + asset.name);
 });
@@ -78,7 +78,7 @@ XAsset.Resource.LoadAsync<GameObject>("Resources/Example/Test.prefab", (asset) =
   - `path`：资源路径（`string` 类型）
 - 使用示例：
 ```csharp
-XAsset.Resource.Unload("Resources/Example/Test.prefab");
+XAsset.Resource.Unload("Example/Test.prefab");
 ```
 
 ## 常见问题

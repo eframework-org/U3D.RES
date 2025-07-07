@@ -39,19 +39,48 @@ namespace EFramework.Asset.Editor
         /// - 合并单包：`Asset/Build/Merge/Single@Editor`，默认值为 `false`
         /// - 拷贝资源：`Asset/Build/Streaming/Assets@Editor`，默认值为 `true`
         /// 
+        /// 关联配置项：`Asset/OffsetFactor`、`Asset/AssetUri`、`Asset/LocalUri`
+        /// 
+        /// 以上配置项均可在 `Tools/EFramework/Preferences/Asset/Build` 首选项编辑器中进行可视化配置。
+        /// 
         /// 2. 自动化流程
         /// 
-        /// 构建流程：
+        /// 2.1 构建流程
         /// - 分析依赖 --> 打包资源 --> 生成清单
         /// 
-        /// 构建产物：
-        /// - `*.bundle`：资源包文件，格式为 `path_to_assets.bundle`
+        /// 2.2 构建准备
+        /// 
+        /// 依赖分析
+        /// - 依赖分析系统将资源类型分为可加载资源和原生依赖资源
+        /// - 可加载资源资源一般位于 Resources 和 Scenes 目录中，通过 `Asset/Build/Include@Editor` 选项进行设置，以单文件形式进行打包
+        /// - 原生依赖资源一般位于 RawAssets 目录中，不可以加载，以文件夹形式进行打包
+        /// - 可以通过设置 `Asset/Build/Include@Editor` 选项排除 `Asset/Build/Include@Editor` 中包含的文件/目录，支持通配符
+        /// 
+        /// 资源合并
+        /// - 材质合并：可选择是否将材质合并到场景包中以完整收集 `Shader` 变体，注意：若某材质的依赖数为1，则默认进行材质合并
+        /// - 单包合并：可选择是否将单一资源合并到主包中
+        /// - 自定义合并：支持通过 AssetImporter 设置自定义打包规则
+        /// 
+        /// 2.3 构建产物
+        /// 
+        /// 在 `Asset/Build/Output@Editor` 目录下会生成以下文件：
+        /// - `*.bundle`：资源包文件，格式为 `file_md5.bundle`
         /// - `Manifest.db`：资源包清单，格式为 `名称|MD5|大小`
         /// 
-        /// 注意事项：
-        /// - 场景文件(.unity)需要单独打包
-        /// - 支持自定义 Bundle 名称
-        /// - 可配置材质和单资源的合并策略
+        /// 构建产物会在内置构建事件 `XEditor.Event.Internal.OnPreprocessBuild` 触发时内置于安装包的资源目录下：
+        /// 
+        /// - 移动平台 (Android/iOS/..)
+        ///   ```
+        ///   <AssetPath>/
+        ///   └── <AssetUri>  # 资源包压缩为 ZIP
+        ///   ```
+        /// 
+        /// - 桌面平台 (Windows/macOS/..)
+        ///   ```
+        ///   <输出目录>_Data/
+        ///   └── Local/
+        ///       └── <LocalUri>  # 资源包直接部署
+        ///   ```
         /// </code>
         /// 更多信息请参考模块文档。
         /// </remarks>

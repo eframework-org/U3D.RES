@@ -13,69 +13,61 @@ XAsset.Bundle 提供了资源包的管理功能，支持自动处理依赖关系
 
 ## 使用手册
 
-### 1. 资源包管理
+### 1. 基本用法
 
-#### 1.1 同步加载
+#### 1.1 初始化资源清单
+- 功能说明：初始化 Bundle 的清单文件
+- 使用示例：
+```csharp
+/// Initialize 初始化 Bundle 的清单文件，如果存在旧的清单会先卸载它。
+/// InitializeOnLoad 时会自动初始化，当资源清单发生变更时需要再次调用以重载。
+/// 仅适用于 Bundle 模式，这个清单文件对于资源的正确加载是必需的。
+XAsset.Bundle.Initialize();
+```
+
+#### 1.2 同步加载资源包
 - 功能说明：加载指定的资源包及其所有依赖资源包
-- 函数参数：
-  - `name`：资源包名称（`string` 类型）
-- 函数返回：加载的资源包（`Bundle` 类型），如果加载失败则返回 `null`
 - 使用示例：
 ```csharp
 var bundle = XAsset.Bundle.Load("example.bundle");
 ```
 
-#### 1.2 异步加载
+#### 1.3 异步加载资源包
 - 功能说明：异步加载指定的资源包及其所有依赖资源包
-- 函数参数：
-  - `name`：资源包名称（`string` 类型）
-  - `handler`：用于跟踪和报告加载进度的处理器（`Handler` 类型）
-- 函数返回：异步加载的协程对象
 - 使用示例：
 ```csharp
 var handler = new Handler();
 yield return XAsset.Bundle.LoadAsync("example.bundle", handler);
 ```
 
-#### 1.3 查找加载
+#### 1.4 查找已加载的资源包
 - 功能说明：在已加载的资源包中查找指定名称的资源包
-- 函数参数：
-  - `name`：资源包名称（`string` 类型）
-- 函数返回：找到的资源包（`Bundle` 类型），如果未找到则返回 `null`
 - 使用示例：
 ```csharp
 var bundle = XAsset.Bundle.Find("example.bundle");
 ```
 
-### 2. 引用计数管理
+#### 1.5 卸载已加载的资源包
+- 功能说明：卸载指定的资源包，减少其引用计数，当计数为 0 时释放资源
+- 使用示例：
+```csharp
+XAsset.Bundle.Unload("example.bundle");
+```
+
+### 2. 引用计数
 
 #### 2.1 增加引用
 - 功能说明：增加资源包的引用计数，同时增加所有依赖资源包的引用计数
-- 函数参数：
-  - `from`：引用来源的描述（`string` 类型），用于调试时追踪资源的使用情况
-- 函数返回：增加后的引用计数（`int` 类型）
 - 使用示例：
 ```csharp
-int count = bundle.Obtain();
+var count = bundle.Obtain();
 ```
 
 #### 2.2 减少引用
 - 功能说明：减少资源包的引用计数，当计数为 0 时自动卸载资源包及其不再被引用的依赖资源
-- 函数参数：
-  - `from`：引用来源的描述（`string` 类型），用于调试时追踪资源的使用情况
-- 函数返回：减少后的引用计数（`int` 类型）
 - 使用示例：
 ```csharp
-int count = bundle.Release();
-```
-
-#### 2.3 卸载资源
-- 功能说明：卸载指定的资源包，减少其引用计数，当计数为 0 时释放资源
-- 函数参数：
-  - `name`：资源包名称（`string` 类型）
-- 使用示例：
-```csharp
-XAsset.Bundle.Unload("example.bundle");
+var count = bundle.Release();
 ```
 
 ## 常见问题

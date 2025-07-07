@@ -56,7 +56,7 @@ stateDiagram-v2
 #### 2.3 构建产物
 
 在 `Asset/Build/Output@Editor` 目录下会生成以下文件：
-- `*.bundle`：资源包文件，格式为 `path_to_assets.bundle`
+- `*.bundle`：资源包文件，格式为 `file_md5.bundle`
 - `Manifest.db`：资源包清单，格式为 `名称|MD5|大小`
 
 构建产物会在内置构建事件 `XEditor.Event.Internal.OnPreprocessBuild` 触发时内置于安装包的资源目录下：

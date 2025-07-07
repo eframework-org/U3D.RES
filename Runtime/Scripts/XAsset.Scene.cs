@@ -24,26 +24,40 @@ namespace EFramework.Asset
         /// - 自动处理资源依赖关系
         ///
         /// 使用手册
-        /// 1. 同步加载：同步加载场景，在 `Bundle` 模式下会自动加载场景对应的资源包
-        ///      使用示例：
-        ///      <code>
-        ///      XAsset.Scene.Load("Scenes/TestScene", LoadSceneMode.Single);
-        ///      </code>
         ///
-        /// 2. 异步加载：异步加载场景，适合加载大型场景，避免加载过程阻塞主线程
-        ///      使用示例：
-        ///      <code>
-        ///      XAsset.Scene.LoadAsync("Scenes/TestScene", () =>
-        ///      {
-        ///          Debug.Log("场景加载完成");
-        ///      });
-        ///      </code>
+        /// 1. 同步加载
+        /// - 功能说明：同步加载场景，在 `Bundle` 模式下会自动加载场景对应的资源包
+        /// - 函数参数：
+        ///   - `nameOrPath`：场景名称或完整路径（`string` 类型）
+        ///   - `loadMode`：场景加载模式（`LoadSceneMode` 类型），默认为 `Single`
+        /// - 使用示例：
+        ///   <code>
+        ///   XAsset.Scene.Load("Scenes/TestScene", LoadSceneMode.Single);
+        ///   </code>
         ///
-        /// 3. 卸载场景：卸载指定场景，在 `Bundle` 模式下会同时卸载场景对应的资源包
-        ///      使用示例：
-        ///      <code>
-        ///      XAsset.Scene.Unload("Scenes/TestScene");
-        ///      </code>
+        /// 2. 异步加载
+        /// - 功能说明：异步加载场景，适合加载大型场景，避免加载过程阻塞主线程
+        /// - 函数参数：
+        ///   - `nameOrPath`：场景名称或完整路径（`string` 类型）
+        ///   - `callback`：场景加载完成后的回调函数（`Action` 类型）
+        ///   - `loadMode`：场景加载模式（`LoadSceneMode` 类型），默认为 `Single`
+        /// - 函数返回：用于跟踪加载进度的 `Handler` 对象
+        /// - 使用示例：
+        ///   <code>
+        ///   XAsset.Scene.LoadAsync("Scenes/TestScene", () =>
+        ///   {
+        ///       Debug.Log("场景加载完成");
+        ///   });
+        ///   </code>
+        ///
+        /// 3. 卸载场景
+        /// - 功能说明：卸载指定场景，在 `Bundle` 模式下会同时卸载场景对应的资源包
+        /// - 函数参数：
+        ///   - `nameOrPath`：场景名称或完整路径（`string` 类型）
+        /// - 使用示例：
+        ///   <code>
+        ///   XAsset.Scene.Unload("Scenes/TestScene");
+        ///   </code>
         /// </code>
         /// 更多信息请参考模块文档。
         /// </remarks>

@@ -20,23 +20,32 @@ namespace EFramework.Asset
         /// - 全局实例追踪：统一管理和清理全局资源实例列表
         ///
         /// 使用手册
-        /// 1. 释放引用：释放指定游戏对象持有的资源
-        ///      使用示例：
-        ///      <code>
-        ///      XAsset.Object.Release(testGameObject);
-        ///      </code>
+        /// 1. 释放引用
+        /// - 功能说明：释放指定游戏对象持有的资源
+        /// - 方法签名：
+        ///   public static void Release(GameObject gameObject)
+        /// - 使用示例：
+        ///   <code>
+        ///   XAsset.Object.Release(testGameObject);
+        ///   </code>
         ///
-        /// 2. 保持引用：手动引用指定游戏对象的资源，防止资源被卸载
-        ///      使用示例：
-        ///      <code>
-        ///      XAsset.Object.Obtain(testGameObject);
-        ///      </code>
+        /// 2. 保持引用
+        /// - 功能说明：手动引用指定游戏对象的资源，防止资源被卸载
+        /// - 方法签名：
+        ///   public static void Obtain(GameObject gameObject)
+        /// - 使用示例：
+        ///   <code>
+        ///   XAsset.Object.Obtain(testGameObject);
+        ///   </code>
         ///
-        /// 3. 清理实例：清理所有已加载的资源对象，释放未被引用的资源
-        ///      使用示例：
-        ///      <code>
-        ///      XAsset.Object.Cleanup();
-        ///      </code>
+        /// 3. 清理实例
+        /// - 功能说明：清理所有已加载的资源对象，释放未被引用的资源
+        /// - 方法签名：
+        ///   public static void Cleanup()
+        /// - 使用示例：
+        ///   <code>
+        ///   XAsset.Object.Cleanup();
+        ///   </code>
         /// </code>
         /// 更多信息请参考模块文档。
         /// </remarks>

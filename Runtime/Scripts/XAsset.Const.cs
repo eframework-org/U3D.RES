@@ -19,6 +19,7 @@ namespace EFramework.Asset
         /// 功能特性
         /// - 运行配置：提供 Bundle 模式、调试模式和资源路径等配置
         /// - 名称生成：提供资源路径的处理并生成归一化的 Bundle 名称
+        /// - 偏移计算：根据首选项中配置的 Bundle 偏移因子计算文件的偏移
         ///
         /// 使用手册
         /// 1. 运行配置
@@ -27,7 +28,7 @@ namespace EFramework.Asset
         ///      依赖条件：编辑器模式下需要启用模拟模式
         ///      访问方式：
         ///      <code>
-        ///      bool isBundleMode = XAsset.Const.BundleMode;
+        ///      var isBundleMode = XAsset.Const.BundleMode;
         ///      </code>
         ///
         ///    - 配置项：引用计数模式
@@ -35,7 +36,7 @@ namespace EFramework.Asset
         ///      依赖条件：仅在 Bundle 模式下可用
         ///      访问方式：
         ///      <code>
-        ///      bool isReferMode = XAsset.Const.ReferMode;
+        ///      var isReferMode = XAsset.Const.ReferMode;
         ///      </code>
         ///
         ///    - 配置项：调试模式
@@ -43,45 +44,51 @@ namespace EFramework.Asset
         ///      依赖条件：仅在 Bundle 模式下可用
         ///      访问方式：
         ///      <code>
-        ///      bool isDebugMode = XAsset.Const.DebugMode;
+        ///      var isDebugMode = XAsset.Const.DebugMode;
         ///      </code>
         ///
         ///    - 配置项：本地路径
         ///      配置说明：获取资源文件的本地存储路径
         ///      访问方式：
         ///      <code>
-        ///      string localPath = XAsset.Const.LocalPath;
+        ///      var localPath = XAsset.Const.LocalPath;
         ///      </code>
         ///
         /// 2. 名称生成
         ///    - 配置项：默认扩展名
         ///      <code>
-        ///      public const string Extension = ".bundle";
+        ///      XAsset.Const.Extension = ".bundle";
         ///      </code>
         ///
         ///    - 配置项：生成规则
         ///      生成资源名称的规则如下：
-        ///      1. 将路径分隔符替换为下划线
-        ///      2. 移除特殊字符
-        ///      3. 转换为小写
-        ///      4. 添加 `.bundle` 扩展名
+        ///      1. 将资源路径的 `Assets/` 剔除
+        ///      2. 获取资源的拓展名，若为空或 `.unity` 则不处理，否则剔除拓展名
+        ///      3. 归一化路径并转为全小写，避免路径的大小写问题
+        ///      4. 对归一化的路径进行 `MD5` 求值并追加 `XAsset.Const.Extension` 扩展名
         ///
         ///      使用示例：
         ///      <code>
-        ///      string assetPath = "Resources/Example/Test.prefab";
-        ///      string bundleName = XAsset.Const.GetName(assetPath);
-        ///      // 输出: assets_example_test.bundle
+        ///      var assetPath = "Resources/Example/Test.prefab";
+        ///      var bundleName = XAsset.Const.GetName(assetPath);
         ///      </code>
         ///
-        ///      特殊字符处理规则：
+        /// 3. 偏移计算
+        ///    - 配置项：偏移因子
+        ///      配置说明：控制 Bundle 文件偏移的计算因子
+        ///      依赖条件：通过首选项配置 `XPrefs.GetInt(Prefs.OffsetFactor)`
+        ///      默认值：从 `Prefs.OffsetFactorDefault` 获取
+        ///
+        ///    - 配置项：计算方法
+        ///      偏移计算的规则如下：
+        ///      1. 如果 Bundle 名称为空，返回 0
+        ///      2. 如果偏移因子小于等于 0，返回 0
+        ///      3. 计算公式：`(bundleName.Length % offsetFactor + 1) * 28`
+        ///
+        ///      使用示例：
         ///      <code>
-        ///      {
-        ///          "_" -> "_"  // 保留
-        ///          " " -> ""   // 移除
-        ///          "#" -> ""   // 移除
-        ///          "[" -> ""   // 移除
-        ///          "]" -> ""   // 移除
-        ///      }
+        ///      var bundleName = XAsset.Const.GetName(assetPath);
+        ///      var offset = XAsset.Const.GetOffset(bundleName);
         ///      </code>
         /// </code>
         /// 更多信息请参考模块文档。
@@ -250,7 +257,7 @@ namespace EFramework.Asset
             internal static int offsetFactor;
 
             /// <summary>
-            /// GetOffset 根据首选项中配置的 Bundle 偏移配置进行文件的偏移计算。
+            /// GetOffset 根据首选项中配置的 Bundle 偏移因子计算文件的偏移。
             /// </summary>
             /// <param name="bundleName">需要计算文件偏移的 Bundle 名称</param>
             /// <returns>Bundle 文件偏移</returns>

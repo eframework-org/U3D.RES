@@ -23,44 +23,62 @@ namespace EFramework.Asset
         /// - 引用计数管理：自动处理依赖关系，通过引用计数管理资源的生命周期
         ///
         /// 使用手册
-        /// 1. 资源包管理
-        ///    - 同步加载：加载指定的资源包及其所有依赖资源包
-        ///      使用示例：
-        ///      <code>
-        ///      var bundle = XAsset.Bundle.Load("example.bundle");
-        ///      </code>
+        /// 1. 基本用法
         ///
-        ///    - 异步加载：异步加载指定的资源包及其所有依赖资源包
-        ///      使用示例：
-        ///      <code>
-        ///      var handler = new Handler();
-        ///      yield return XAsset.Bundle.LoadAsync("example.bundle", handler);
-        ///      </code>
+        /// 1.1 初始化资源清单
+        /// - 功能说明：初始化 Bundle 的清单文件
+        /// - 使用示例：
+        /// <code>
+        /// /// Initialize 初始化 Bundle 的清单文件，如果存在旧的清单会先卸载它。
+        /// /// InitializeOnLoad 时会自动初始化，当资源清单发生变更时需要再次调用以重载。
+        /// /// 仅适用于 Bundle 模式，这个清单文件对于资源的正确加载是必需的。
+        /// XAsset.Bundle.Initialize();
+        /// </code>
         ///
-        ///    - 查找加载：在已加载的资源包中查找指定名称的资源包
-        ///      使用示例：
-        ///      <code>
-        ///      var bundle = XAsset.Bundle.Find("example.bundle");
-        ///      </code>
+        /// 1.2 同步加载资源包
+        /// - 功能说明：加载指定的资源包及其所有依赖资源包
+        /// - 使用示例：
+        /// <code>
+        /// var bundle = XAsset.Bundle.Load("example.bundle");
+        /// </code>
         ///
-        /// 2. 引用计数管理
-        ///    - 增加引用：增加资源包的引用计数，同时增加所有依赖资源包的引用计数
-        ///      使用示例：
-        ///      <code>
-        ///      int count = bundle.Obtain();
-        ///      </code>
+        /// 1.3 异步加载资源包
+        /// - 功能说明：异步加载指定的资源包及其所有依赖资源包
+        /// - 使用示例：
+        /// <code>
+        /// var handler = new Handler();
+        /// yield return XAsset.Bundle.LoadAsync("example.bundle", handler);
+        /// </code>
         ///
-        ///    - 减少引用：减少资源包的引用计数，当计数为 0 时自动卸载资源包及其不再被引用的依赖资源
-        ///      使用示例：
-        ///      <code>
-        ///      int count = bundle.Release();
-        ///      </code>
+        /// 1.4 查找已加载的资源包
+        /// - 功能说明：在已加载的资源包中查找指定名称的资源包
+        /// - 使用示例：
+        /// <code>
+        /// var bundle = XAsset.Bundle.Find("example.bundle");
+        /// </code>
         ///
-        ///    - 卸载资源：卸载指定的资源包，减少其引用计数，当计数为 0 时释放资源
-        ///      使用示例：
-        ///      <code>
-        ///      XAsset.Bundle.Unload("example.bundle");
-        ///      </code>
+        /// 1.5 卸载已加载的资源包
+        /// - 功能说明：卸载指定的资源包，减少其引用计数，当计数为 0 时释放资源
+        /// - 使用示例：
+        /// <code>
+        /// XAsset.Bundle.Unload("example.bundle");
+        /// </code>
+        ///
+        /// 2. 引用计数
+        ///
+        /// 2.1 增加引用
+        /// - 功能说明：增加资源包的引用计数，同时增加所有依赖资源包的引用计数
+        /// - 使用示例：
+        /// <code>
+        /// var count = bundle.Obtain();
+        /// </code>
+        ///
+        /// 2.2 减少引用
+        /// - 功能说明：减少资源包的引用计数，当计数为 0 时自动卸载资源包及其不再被引用的依赖资源
+        /// - 使用示例：
+        /// <code>
+        /// var count = bundle.Release();
+        /// </code>
         /// </code>
         /// 更多信息请参考模块文档。
         /// </remarks>
@@ -82,7 +100,7 @@ namespace EFramework.Asset
             public int Count { get; internal set; }
 
             /// <summary>
-            /// Obtain 增加资源包的引用计数，同时会增加所有依赖资源包的引用计数。
+            /// Obtain 增加资源包的引用计数，同时增加所有依赖资源包的引用计数。
             /// </summary>
             /// <param name="from">引用来源的描述，用于调试时追踪资源的使用情况</param>
             /// <returns>增加后的引用计数</returns>
@@ -104,7 +122,7 @@ namespace EFramework.Asset
             }
 
             /// <summary>
-            /// Release 减少资源包的引用计数，当计数降为 0 时，会自动卸载资源包及其不再被引用的依赖资源。
+            /// Release 减少资源包的引用计数，当计数为 0 时自动卸载资源包及其不再被引用的依赖资源。
             /// </summary>
             /// <param name="from">引用来源的描述，用于调试时追踪资源的使用情况</param>
             /// <returns>减少后的引用计数</returns>
@@ -206,6 +224,7 @@ namespace EFramework.Asset
 
             /// <summary>
             /// Initialize 初始化 Bundle 的清单文件，如果存在旧的清单会先卸载它。
+            /// InitializeOnLoad 时会自动初始化，当资源清单发生变更时需要再次调用以重载。
             /// 仅适用于 Bundle 模式，这个清单文件对于资源的正确加载是必需的。
             /// </summary>
             public static void Initialize()
