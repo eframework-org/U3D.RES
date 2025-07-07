@@ -342,12 +342,12 @@ namespace EFramework.Asset.Editor
                         if (assetImporter)
                         {
                             var bundleName = Const.GetName(asset);
-                            if (!fileBundles.TryGetValue(bundleName, out var deps)) { deps = new List<string>(); fileBundles.Add(bundleName, deps); }
-                            if (!deps.Contains(asset)) deps.Add(asset);
+                            if (!fileBundles.TryGetValue(bundleName, out var dependencies)) { dependencies = new List<string>(); fileBundles.Add(bundleName, dependencies); }
+                            if (!dependencies.Contains(asset)) dependencies.Add(asset);
                         }
                     }
 
-                    var keys = dependAssets.Keys.ToList(); // Prefer to process scene to elimate material deps.
+                    var keys = dependAssets.Keys.ToList(); // 优先处理场景以剔除材质依赖
                     keys.Sort((a1, a2) =>
                     {
                         var b1 = a1.EndsWith(".unity") ? 0 : 1;
@@ -368,7 +368,7 @@ namespace EFramework.Asset.Editor
                                 visited.Add(asset);
                                 if (asset.Contains("Editor/"))
                                 {
-                                    XLog.Warn("XAsset.Build.GenDependency: ignore editor asset deps: {0}.", asset);
+                                    XLog.Warn("XAsset.Build.GenDependency: ignore editor asset dependency: {0}.", asset);
                                     continue;
                                 }
                                 else
@@ -378,13 +378,13 @@ namespace EFramework.Asset.Editor
                                     if (assetImporter)
                                     {
                                         string bundleName;
-                                        List<string> deps;
+                                        List<string> dependencies;
                                         if (!string.IsNullOrEmpty(assetImporter.assetBundleName))
                                         {
                                             bundleName = assetImporter.assetBundleName;
                                             XLog.Debug("XAsset.Build.GenDependency: using custom bundle name: {0} for asset: {1}.", bundleName, asset);
-                                            if (!customBundles.TryGetValue(bundleName, out deps)) { deps = new List<string>(); customBundles.Add(bundleName, deps); }
-                                            if (!deps.Contains(asset)) deps.Add(asset);
+                                            if (!customBundles.TryGetValue(bundleName, out dependencies)) { dependencies = new List<string>(); customBundles.Add(bundleName, dependencies); }
+                                            if (!dependencies.Contains(asset)) dependencies.Add(asset);
                                         }
                                         else
                                         {
@@ -395,8 +395,8 @@ namespace EFramework.Asset.Editor
                                             {
                                                 var dir = XFile.NormalizePath(Path.GetDirectoryName(asset));
                                                 bundleName = Const.GetName(dir.StartsWith("Assets/") ? dir["Assets/".Length..] : dir);
-                                                if (!dirBundles.TryGetValue(bundleName, out deps)) { deps = new List<string>(); dirBundles.Add(bundleName, deps); }
-                                                if (!deps.Contains(asset)) deps.Add(asset);
+                                                if (!dirBundles.TryGetValue(bundleName, out dependencies)) { dependencies = new List<string>(); dirBundles.Add(bundleName, dependencies); }
+                                                if (!dependencies.Contains(asset)) dependencies.Add(asset);
                                             }
                                         }
                                     }
@@ -413,9 +413,9 @@ namespace EFramework.Asset.Editor
                         foreach (var kvp in dirBundles)     // 若引用的多个资源都只出现在该包中，也会合并
                         {
                             var sig = true;
-                            foreach (var dep in kvp.Value)
+                            foreach (var dependency in kvp.Value)
                             {
-                                if (refCountMap[dep] > 0) { sig = false; break; }
+                                if (refCountMap[dependency] > 0) { sig = false; break; }
                             }
                             if (sig) deletes.Add(kvp.Key);
                         }
@@ -511,8 +511,8 @@ namespace EFramework.Asset.Editor
                     for (var i = 0; i < abs.Count;)
                     {
                         var ab = abs[i];
-                        var deps = manifest.GetAllDependencies(ab);
-                        if (deps.Length == count)
+                        var dependencies = manifest.GetAllDependencies(ab);
+                        if (dependencies.Length == count)
                         {
                             abs.RemoveAt(i);
                             abs2.Add(ab);

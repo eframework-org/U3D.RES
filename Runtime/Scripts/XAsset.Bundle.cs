@@ -95,11 +95,11 @@ namespace EFramework.Asset
                     if (Loaded.TryGetValue(dependency, out var dependBundle))
                     {
                         dependBundle.Count++;
-                        if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Obtain: depend bundle: {0}, refer count: {1}, cached bundle count: {2}, obtain from: {3}.", dependBundle.Name, dependBundle.Count, Loaded.Count, from);
+                        if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Obtain: depend bundle: {0}, reference count: {1}, cached bundle count: {2}, obtain from: {3}.", dependBundle.Name, dependBundle.Count, Loaded.Count, from);
                     }
                 }
                 Count++;
-                if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Obtain: main bundle: {0}, refer count: {1}, cached bundle count: {2}, obtain from: {3}.", Name, Count, Loaded.Count, from);
+                if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Obtain: main bundle: {0}, reference count: {1}, cached bundle count: {2}, obtain from: {3}.", Name, Count, Loaded.Count, from);
                 return Count;
             }
 
@@ -120,13 +120,13 @@ namespace EFramework.Asset
                         if (Loaded.TryGetValue(dependency, out var dependBundle))
                         {
                             dependBundle.Count--;
-                            if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Release: depend bundle: {0}, refer count: {1}, cached bundle count: {2}, release from: {3}", dependBundle.Name, dependBundle.Count, Loaded.Count, from);
+                            if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Release: depend bundle: {0}, reference count: {1}, cached bundle count: {2}, release from: {3}", dependBundle.Name, dependBundle.Count, Loaded.Count, from);
                             if (dependBundle.Source == null) Loaded.Remove(dependency);
                             else if (dependBundle.Count <= 0)
                             {
                                 dependBundle.Source.Unload(true);
                                 Loaded.Remove(dependency);
-                                if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Release: unload depend bundle: {0}, refer count: {1}, release from: {2}", dependBundle.Name, Loaded.Count, from);
+                                if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Release: unload depend bundle: {0}, reference count: {1}, release from: {2}", dependBundle.Name, Loaded.Count, from);
                                 try { Event.Notify(EventType.OnPostUnloadBundle, dependBundle.Source); }
                                 catch (Exception e) { XLog.Panic(e); }
                             }
@@ -134,7 +134,7 @@ namespace EFramework.Asset
                     }
                 }
                 Count--;
-                if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Release: main bundle: {0}, refer count: {1}, cached bundle count: {2}, release from: {3}", Name, Count, Loaded.Count, from);
+                if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Release: main bundle: {0}, reference count: {1}, cached bundle count: {2}, release from: {3}", Name, Count, Loaded.Count, from);
                 if (Source == null)
                 {
                     Loaded.Remove(Name);
