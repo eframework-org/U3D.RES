@@ -10,24 +10,33 @@ using static EFramework.Asset.XAsset;
 public class TestXAssetConst
 {
     [TestCase("Assets/Textures/MyTexture")]     // 正常路径
-    [TestCase("Assets/Textures/My Texture")]    // 包含空格
-    [TestCase("Assets/Textures/My#Texture")]    // 包含#号
-    [TestCase("Assets/Textures/My[Texture]")]   // 包含方括号
-    [TestCase("Assets\\Textures\\MyTexture")]   // 包含反斜杠
+    [TestCase("Packages\\Test\\MyTexture.png")]   // 包含反斜杠
+    [TestCase("Assets/Scenes/MyScene.unity")]   // 场景资源
+    [TestCase("")]
+    [TestCase(null)]
     public void Name(string path)
     {
         // Arrange
-        var expectedName = "assets_textures_mytexture.bundle";
         // 清空缓存以确保测试的准确性
         Const.nameCache.Clear();
 
         // Act
         var name = Const.GetName(path);
+        var expected = string.Empty;
+        if (!string.IsNullOrEmpty(path))
+        {
+            var extension = System.IO.Path.GetExtension(path);
+            if (path.StartsWith("Assets/")) path = path["Assets/".Length..];
+            if (!string.IsNullOrEmpty(extension) && extension != ".unity") // 场景文件只能单独打包
+            {
+                path = path.Replace(extension, "");
+            }
+            expected = XFile.NormalizePath(path).MD5() + Const.Extension;
+        }
 
         // Assert
-        Assert.AreEqual(expectedName, name, "生成的标签应符合预期格式。");
-        Assert.IsTrue(Const.nameCache.ContainsKey(path), "资源路径在首次调用后应被缓存。");
-        Assert.AreEqual(1, Const.nameCache.Count, "缓存应该只包含一个条目。");
+        Assert.AreEqual(expected, name, "生成的标签应符合预期格式。");
+        if (!string.IsNullOrEmpty(path)) Assert.IsTrue(Const.nameCache.ContainsKey(path), "资源路径在首次调用后应被缓存。");
     }
 
     [TestCase(true, true, true)]
@@ -56,17 +65,6 @@ public class TestXAssetConst
         // Assert
         Assert.AreEqual(expectedLocalPath, actualLocalPath, "LocalPath应与预期路径匹配。");
         Assert.IsTrue(Const.bLocalPath, "获取LocalPath后，bLocalPath标志应被设置。");
-    }
-
-    [Test]
-    public void Escape()
-    {
-        // Assert
-        Assert.AreEqual("_", Const.escapeChars["_"], "下划线应映射为下划线。");
-        Assert.AreEqual("", Const.escapeChars[" "], "空格应映射为空字符串。");
-        Assert.AreEqual("", Const.escapeChars["#"], "井号应映射为空字符串。");
-        Assert.AreEqual("", Const.escapeChars["["], "左方括号应映射为空字符串。");
-        Assert.AreEqual("", Const.escapeChars["]"], "右方括号应映射为空字符串。");
     }
 }
 #endif

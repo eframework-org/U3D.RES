@@ -44,13 +44,13 @@ public class TestXAssetResource
 
         // Assert
         Assert.IsNotNull(asset1, "加载的资产不应为空。");
-        Assert.IsInstanceOf<GameObject>(asset1, "加载的资产应为GameObject类型。");
+        Assert.IsInstanceOf<GameObject>(asset1, "加载的资产应为 GameObject 类型。");
         Assert.DoesNotThrow(() => Resource.Unload(path));
 
         // 测试泛型加载
         var asset2 = Resource.Load<GameObject>(path);
         Assert.IsNotNull(asset2, "加载的资产不应为空。");
-        Assert.IsInstanceOf<GameObject>(asset2, "加载的资产应为GameObject类型。");
+        Assert.IsInstanceOf<GameObject>(asset2, "加载的资产应为 GameObject 类型。");
         Assert.DoesNotThrow(() => Resource.Unload(path));
 
         var notExistAsset = Resource.Load(notExistPath, typeof(GameObject));
@@ -77,7 +77,7 @@ public class TestXAssetResource
             {
                 // Assert
                 Assert.IsNotNull(asset, "加载的资产不应为空。");
-                Assert.IsInstanceOf<GameObject>(asset, "加载的资产应为GameObject类型。");
+                Assert.IsInstanceOf<GameObject>(asset, "加载的资产应为 GameObject 类型。");
                 Assert.DoesNotThrow(() => Resource.Unload(path));
             });
             yield return handler1;
@@ -87,7 +87,7 @@ public class TestXAssetResource
             {
                 // Assert
                 Assert.IsNotNull(asset, "加载的资产不应为空。");
-                Assert.IsInstanceOf<GameObject>(asset, "加载的资产应为GameObject类型。");
+                Assert.IsInstanceOf<GameObject>(asset, "加载的资产应为 GameObject 类型。");
                 Assert.DoesNotThrow(() => Resource.Unload(path));
             });
             yield return handler2;

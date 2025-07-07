@@ -89,9 +89,9 @@ public class TestXAssetBuild : IPrebuildSetup
         Assert.IsNotNull(dependency, "依赖关系字典不应为空");
 
         // 验证MergeSingle选项的效果
-        var hasTestSingleBundle = dependency.Keys.Any(k => k.Contains("testsingle"));
-        if (mergeSingle) Assert.IsFalse(hasTestSingleBundle, "启用MergeSingle时，TestSingle资源不应有独立Bundle");
-        else Assert.IsTrue(hasTestSingleBundle, "未启用MergeSingle时，TestSingle资源应有独立Bundle");
+        var hasTestSingleBundle = dependency.Values.Any(k => k.Exists(e => e.Contains("TestSingle")));
+        if (mergeSingle) Assert.IsFalse(hasTestSingleBundle, "启用MergeSingle时，TestSingle 资源不应有独立 Bundle");
+        else Assert.IsTrue(hasTestSingleBundle, "未启用MergeSingle时，TestSingle 资源应有独立Bundle");
 
         // 验证MergeMaterial选项的效果
         var hasMaterialBundle = false;
@@ -148,7 +148,7 @@ public class TestXAssetBuild : IPrebuildSetup
                     // 对于特定的通配符模式进行验证
                     if (inc.Contains("*.unity"))
                     {
-                        bool hasUnityBundle = dependency.Keys.Any(k => k.Contains("_unity"));
+                        var hasUnityBundle = dependency.Values.Any(k => k.Exists(e => e.EndsWith(".unity")));
                         Assert.IsTrue(hasUnityBundle, "应包含场景Bundle");
                     }
                     continue;
@@ -158,7 +158,7 @@ public class TestXAssetBuild : IPrebuildSetup
                 if (XFile.HasFile(fullPath))
                 {
                     // 单个文件
-                    bool found = false;
+                    var found = false;
                     foreach (var kvp in dependency)
                     {
                         if (kvp.Value.Any(v => v.Contains(Path.GetFileName(fullPath))))

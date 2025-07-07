@@ -7,7 +7,6 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using System.Collections;
-using EFramework.Asset;
 using static EFramework.Asset.XAsset;
 
 [PrebuildSetup(typeof(TestXAssetBuild))]

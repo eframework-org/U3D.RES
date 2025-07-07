@@ -2,6 +2,7 @@
 // Use of this source code is governed by a MIT-style
 // license that can be found in the LICENSE file.
 
+using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using EFramework.Utility;
@@ -209,37 +210,28 @@ namespace EFramework.Asset
             public static string Extension = ".bundle";
 
             /// <summary>
-            /// escapeChars 是资源名称转换规则表，定义了如何处理资源路径中的特殊字符。
-            /// 这些规则会在生成资源包名称时使用，确保生成的名称符合文件系统要求。
-            /// </summary>
-            internal static readonly Dictionary<string, string> escapeChars = new() {
-                { "_", "_" },
-                { " ", "" },
-                { "#", "" },
-                { "[", "" },
-                { "]", "" }
-            };
-
-            /// <summary>
             /// nameCache 是资源名称的缓存，用于提高重复名称生成的性能。
             /// </summary>
             internal static readonly Dictionary<string, string> nameCache = new();
 
             /// <summary>
-            /// GetName 根据资源路径生成唯一的资源名称。
-            /// 这个名称可用作资源包的文件名，会自动处理路径中的特殊字符并确保生成的名称符合文件系统规范。
+            /// GetName 根据资源路径生成唯一的资源包名称。
             /// </summary>
             /// <param name="assetPath">需要转换的资源路径</param>
-            /// <returns>转换后的资源名称，已处理特殊字符并添加扩展名</returns>
+            /// <returns>转换后的资源名称，包括扩展名</returns>
             public static string GetName(string assetPath)
             {
+                if (string.IsNullOrEmpty(assetPath)) return string.Empty;
                 if (nameCache.TryGetValue(assetPath, out var bundleName)) return bundleName;
                 else
                 {
-                    bundleName = assetPath.Replace("/", "_").Replace("\\", "_");
-                    foreach (var escape in escapeChars) bundleName = bundleName.Replace(escape.Key, escape.Value);
-                    bundleName += Extension;
-                    bundleName = bundleName.ToLower();
+                    if (assetPath.StartsWith("Assets/")) assetPath = assetPath["Assets/".Length..];
+                    var extension = Path.GetExtension(assetPath);
+                    if (!string.IsNullOrEmpty(extension) && extension != ".unity") // 场景文件只能单独打包
+                    {
+                        assetPath = assetPath.Replace(extension, "");
+                    }
+                    bundleName = XFile.NormalizePath(assetPath).MD5() + Extension;
                     nameCache[assetPath] = bundleName;
                     return bundleName;
                 }

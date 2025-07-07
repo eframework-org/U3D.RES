@@ -10,6 +10,7 @@
 - 移除 Utility 的 Loading 函数并重构为 Resource/Scene.IsLoading
 - 移除 Manifest 模块，耦合其功能至 Bundle 模块中
 - 修改 Const.GenTag 函数为 Const.GetName
+- 重构 Asset Bundle 文件的命名方式，避免文件名过长同时降低可读性
 
 ### 修复
 - 修复取消资源构建引起的 Asset Bundle 文件偏移错乱的问题

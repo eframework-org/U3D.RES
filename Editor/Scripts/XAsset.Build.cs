@@ -341,9 +341,7 @@ namespace EFramework.Asset.Editor
                         var assetImporter = AssetImporter.GetAtPath(asset);
                         if (assetImporter)
                         {
-                            var bundleName = Const.GetName(asset.StartsWith("Assets/") ? asset["Assets/".Length..] : asset);
-                            if (bundleName.Contains(".unity")) bundleName = bundleName.Replace(".unity", "_unity"); // 场景文件只能单独打包
-                            else bundleName = bundleName.Replace(Path.GetExtension(asset), "");
+                            var bundleName = Const.GetName(asset);
                             if (!fileBundles.TryGetValue(bundleName, out var deps)) { deps = new List<string>(); fileBundles.Add(bundleName, deps); }
                             if (!deps.Contains(asset)) deps.Add(asset);
                         }
@@ -493,7 +491,7 @@ namespace EFramework.Asset.Editor
                 // write ab manifest file;
                 var manifestMD5 = XFile.FileMD5(abManifestFilePath);
                 var manifestSize = XFile.FileSize(abManifestFilePath);
-                sw.WriteLine(Const.Manifest + "|" + manifestMD5 + "|" + manifestSize);
+                sw.WriteLine(Const.GetName(Const.Manifest) + "|" + manifestMD5 + "|" + manifestSize);
                 var lines = File.ReadAllLines(manifestFilePath);
                 var abs = new List<string>();
                 for (var i = 0; i < lines.Length; i++)
@@ -534,6 +532,15 @@ namespace EFramework.Asset.Editor
                 sw.Close();
                 fs.Close();
                 bundle.Unload(true);
+
+                // 标准化 Bundle 文件命名
+                var dstMani = XFile.PathJoin(buildDir, Const.Manifest.MD5() + Const.Extension);
+                if (XFile.HasFile(dstMani)) XFile.DeleteFile(dstMani);
+                File.Move(abManifestFilePath, dstMani);
+
+                dstMani += ".manifest";
+                if (XFile.HasFile(dstMani)) XFile.DeleteFile(dstMani);
+                File.Move(manifestFilePath, dstMani);
             }
 
             /// <summary>
@@ -591,7 +598,8 @@ namespace EFramework.Asset.Editor
                         if (mani.Files.Find((e) => { return e.Name == n; }) == null)
                         {
                             XFile.DeleteFile(f);
-                            XLog.Warn("XAsset.Build.GenSummary: invalid {0} has been deleted.", f);
+                            XFile.DeleteFile(f + ".manifest");
+                            XLog.Warn("XAsset.Build.GenSummary: invalid {0} has been deleted.", n);
                         }
                     }
                 }
@@ -680,7 +688,7 @@ namespace EFramework.Asset.Editor
                 }
 
                 XFile.DeleteFile(src);
-                Directory.Move(dst, src);
+                File.Move(dst, src);
                 XFile.DeleteFile(dst);
                 fi.Size = XFile.FileSize(src);
                 fi.MD5 = XFile.FileMD5(src);

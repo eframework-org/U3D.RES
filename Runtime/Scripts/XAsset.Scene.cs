@@ -94,10 +94,10 @@ namespace EFramework.Asset
                         if (nameOrPath.Contains("/"))
                         {
                             if (nameOrPath.StartsWith("Assets/")) nameOrPath = nameOrPath["Assets/".Length..];
-                            if (!nameOrPath.EndsWith(".unity")) nameOrPath += "_unity";
+                            if (!nameOrPath.EndsWith(".unity")) nameOrPath += ".unity";
                             bundleName = Const.GetName(nameOrPath);
                         }
-                        else bundleName = $"scenes_{sceneName}_unity{Const.Extension}".ToLower();
+                        else bundleName = Const.GetName($"Scenes/{sceneName}.unity");
                         if (Bundle.Load(bundleName) == null) XLog.Error("XAsset.Scene.Load: can not load scene caused by nil scene bundle file.");
                         else SceneManager.LoadScene(sceneName, loadMode);
                     }
@@ -150,10 +150,10 @@ namespace EFramework.Asset
                     if (nameOrPath.Contains("/"))
                     {
                         if (nameOrPath.StartsWith("Assets/")) nameOrPath = nameOrPath["Assets/".Length..];
-                        if (!nameOrPath.EndsWith(".unity")) nameOrPath += "_unity";
+                        if (!nameOrPath.EndsWith(".unity")) nameOrPath += ".unity";
                         bundleName = Const.GetName(nameOrPath);
                     }
-                    else bundleName = $"scenes_{sceneName}_unity{Const.Extension}".ToLower();
+                    else bundleName = Const.GetName($"Scenes/{sceneName}.unity");
                     yield return XLoom.StartCR(Bundle.LoadAsync(bundleName, handler));
                     if (Bundle.Find(bundleName) != null)
                     {
@@ -238,10 +238,10 @@ namespace EFramework.Asset
                     if (nameOrPath.Contains("/"))
                     {
                         if (nameOrPath.StartsWith("Assets/")) nameOrPath = nameOrPath["Assets/".Length..];
-                        if (!nameOrPath.EndsWith(".unity")) nameOrPath += "_unity";
+                        if (!nameOrPath.EndsWith(".unity")) nameOrPath += ".unity";
                         bundleName = Const.GetName(nameOrPath);
                     }
-                    else bundleName = $"scenes_{sceneName}_unity{Const.Extension}".ToLower();
+                    else bundleName = Const.GetName($"Scenes/{sceneName}.unity");
                     Bundle.Unload(bundleName);
                 }
             }

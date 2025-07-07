@@ -62,7 +62,7 @@ public class TestXAssetBundle
     {
         // Arrange
         AssetBundle assetBundle = null;
-        string bundleName = "packages_org.eframework.u3d.res_tests_runtime_resources_bundle_prefab_testcube.bundle";
+        var bundleName = Const.GetName("Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube.prefab");
         var bundle = Bundle.Load(bundleName);
         XAsset.Event.Reg(XAsset.EventType.OnPostUnloadBundle, (AssetBundle ab) => { assetBundle = ab; });
 
@@ -81,7 +81,7 @@ public class TestXAssetBundle
     public void LoadAndUnload()
     {
         // Act
-        var bundleName = "packages_org.eframework.u3d.res_tests_runtime_resources_bundle_prefab_testcube.bundle";
+        var bundleName = Const.GetName("Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube.prefab");
         // 检查初始状态
         Assert.IsNull(Bundle.Find(bundleName), "初始状态下Bundle不应该被加载。");
         var bundle = Bundle.Load(bundleName);
@@ -90,7 +90,7 @@ public class TestXAssetBundle
         LogAssert.Expect(LogType.Error, new Regex(".*Unable to open archive.*"));
         LogAssert.Expect(LogType.Error, new Regex(".*Failed to read data for the AssetBundle.*"));
         LogAssert.Expect(LogType.Error, new Regex(".*sync load main bundle error.*"));
-        var noneBundleName = "non_existent_bundle.bundle";
+        var noneBundleName = "non/existent/bundle";
         var noneBundle = Bundle.Load(noneBundleName);
 
         // Assert 
@@ -107,7 +107,7 @@ public class TestXAssetBundle
     public IEnumerator LoadAsync()
     {
         // Act
-        var bundleName = "packages_org.eframework.u3d.res_tests_runtime_resources_bundle_prefab_testcube.bundle";
+        var bundleName = Const.GetName("Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube.prefab");
         var handler = new Handler();
         handler.OnPostload += () =>
         {
@@ -123,7 +123,7 @@ public class TestXAssetBundle
     public void LoadSame()
     {
         // Act
-        var bundleName = "packages_org.eframework.u3d.res_tests_runtime_resources_bundle_prefab_testcube.bundle";
+        var bundleName = Const.GetName("Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube.prefab");
         var bundle1 = Bundle.Load(bundleName);
         var bundle2 = Bundle.Load(bundleName);
 
