@@ -482,7 +482,7 @@ namespace EFramework.Asset.Editor
                     if (XFile.HasFile(dependencyFile)) XFile.DeleteFile(dependencyFile);
                     XLog.Panic(e);
                 }
-                XLog.Debug("XAsset.Build.GenDependency: generate <a href=\"file:///{0}\">{1}</a> done, elapsed {2}s.", Path.GetFullPath(dependencyFile), Path.GetFileName(dependencyFile), XTime.GetTimestamp() - buildTime);
+                XLog.Debug("XAsset.Build.GenDependency: generate <a href=\"file:///{0}\">{1}</a> done, elapsed {2}s.", Path.GetFullPath(dependencyFile), Path.GetRelativePath(XEnv.ProjectPath, dependencyFile), XTime.GetTimestamp() - buildTime);
                 return buildBundles;
             }
 
@@ -770,7 +770,7 @@ namespace EFramework.Asset.Editor
                             var dstDir = XFile.PathJoin(outputDir, outputName + "_Data", "Local", XPrefs.GetString(Prefs.LocalUri, Prefs.LocalUriDefault));
                             XFile.CopyDirectory(srcDir, dstDir, ".manifest");
                         }
-                        XLog.Debug("XAsset.Build.OnPreprocessBuild: streaming asset(s) from <a href=\"file:///{0}\">{1}</a> succeeded.", Path.GetFullPath(srcDir), Path.GetFileName(srcDir));
+                        XLog.Debug("XAsset.Build.OnPreprocessBuild: streaming asset(s) from <a href=\"file:///{0}\">{1}</a> succeeded.", Path.GetFullPath(srcDir), Path.GetRelativePath(XEnv.ProjectPath, srcDir));
                     }
                 }
             }
