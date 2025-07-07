@@ -31,7 +31,7 @@ public class TestXAssetConst
             {
                 path = path.Replace(extension, "");
             }
-            expected = XFile.NormalizePath(path).MD5() + Const.Extension;
+            expected = XFile.NormalizePath(path).ToLower().MD5() + Const.Extension;
         }
 
         // Assert

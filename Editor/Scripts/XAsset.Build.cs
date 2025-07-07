@@ -534,7 +534,7 @@ namespace EFramework.Asset.Editor
                 bundle.Unload(true);
 
                 // 标准化 Bundle 文件命名
-                var dstMani = XFile.PathJoin(buildDir, Const.Manifest.MD5() + Const.Extension);
+                var dstMani = XFile.PathJoin(buildDir, Const.GetName(Const.Manifest));
                 if (XFile.HasFile(dstMani)) XFile.DeleteFile(dstMani);
                 File.Move(abManifestFilePath, dstMani);
 

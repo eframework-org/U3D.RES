@@ -231,7 +231,7 @@ namespace EFramework.Asset
                     {
                         assetPath = assetPath.Replace(extension, "");
                     }
-                    bundleName = XFile.NormalizePath(assetPath).MD5() + Extension;
+                    bundleName = XFile.NormalizePath(assetPath).ToLower().MD5() + Extension;
                     nameCache[assetPath] = bundleName;
                     return bundleName;
                 }

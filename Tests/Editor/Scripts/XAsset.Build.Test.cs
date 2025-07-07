@@ -25,8 +25,7 @@ public class TestXAssetBuild : IPrebuildSetup
         var packagePath = XEditor.Utility.FindPackage().assetPath;
 
         // 使用包含路径
-        var include = new string[] {
-                    "Tests/Runtime/Resources/Bundle", "Tests/Runtime/Scenes" }.
+        var include = new string[] { "Tests/Runtime/Resources/Bundle", "Tests/Runtime/Scenes" }.
             Select(path => XFile.PathJoin(packagePath, path)).ToArray();
 
         XPrefs.Asset.Set(Build.Prefs.MergeSingle, false);
