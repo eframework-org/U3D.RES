@@ -19,7 +19,7 @@
 ### 2. 开发工具
 - Unity 6000 LTS+：游戏引擎
 - Unity Test Framework：单元测试框架
-- Cursor/VS Code/Visual Studio：代码编辑器
+- VS Code/Visual Studio：代码编辑器
 
 ### 3. 集成工具
 - Github Action：提供了自动化测试及发布工作流
@@ -426,7 +426,7 @@ public class Test<模块名称>
 
 ### 1. 环境准备
 - 克隆项目仓库：`git clone https://github.com/eframework-org/U3D.RES.git`
-- 使用 `Cursor` 或 `VS Code` 编辑器打开示例工程目录 `Samples~`
+- 使用 `VS Code` 打开示例工程 `Samples~/U3D.RES.code-workspace` 工作空间
 
 ### 2. 开发调试
 - 在编辑器中运行 `Open in Unity` 任务以打开 Unity 工程
