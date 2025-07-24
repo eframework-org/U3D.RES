@@ -14,6 +14,13 @@ on:
         type: string
         default: '["EditMode", "PlayMode"]'
   workflow_call:
+    secrets:
+      UNITY_LICENSE:
+        required: true
+      UNITY_EMAIL:
+        required: true
+      UNITY_PASSWORD:
+        required: true
     inputs:
       unity_versions:
         description: 'Unity 版本：https://unity.com/releases/editor/archive'
@@ -29,13 +36,6 @@ on:
       test_passed:
         description: "测试是否通过"
         value: ${{ jobs.test.outputs.passed }}
-    secrets:
-      UNITY_LICENSE:
-        required: true
-      UNITY_EMAIL:
-        required: true
-      UNITY_PASSWORD:
-        required: true
 
 permissions:
   checks: write
@@ -53,7 +53,7 @@ jobs:
       fail-fast: false
       matrix:
         projectPath:
-          - Package
+          - Package/Samples~
         unityVersion: ${{ fromJson(github.event.inputs.unity_versions || inputs.unity_versions) }}
         testMode: ${{ fromJson(github.event.inputs.test_modes || inputs.test_modes) }}
     outputs:
@@ -65,6 +65,14 @@ jobs:
         with:
           lfs: true
           path: Package
+
+      - name: 检出缓存
+        uses: actions/cache@v3
+        with:
+          path: ${{ matrix.projectPath }}/Library
+          key: Library-${{ runner.os }}-${{ hashFiles('**/ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            Library-${{ runner.os }}-
 
       - name: 准备镜像
         run: |
@@ -140,11 +148,8 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          packageMode: true
           projectPath: ${{ matrix.projectPath }}
           unityVersion: ${{ matrix.unityVersion }}
-          scopedRegistryUrl: https://registry.npmjs.com/
-          registryScopes: 'org.eframework'
           testMode: ${{ matrix.testMode }}
           artifactsPath: Results
           githubToken: ${{ secrets.GITHUB_TOKEN }}

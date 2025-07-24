@@ -1,0 +1,14 @@
+/.vs
+/.idea
+/.vscode
+/Builds
+/Library
+/Local
+/Logs
+/obj
+/node_modules
+/Temp
+/UserSettings
+/package-lock.md5
+*.csproj
+*.sln

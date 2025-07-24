@@ -7,7 +7,6 @@ using NUnit.Framework;
 using EFramework.Utility;
 using EFramework.Editor;
 using System.IO;
-using UnityEditor;
 using System.Linq;
 using static EFramework.Asset.Editor.XAsset;
 using static EFramework.Asset.Editor.XAsset.Build;
@@ -21,12 +20,8 @@ public class TestXAssetBuild : IPrebuildSetup
         // 创建处理器
         var handler = new Build() { ID = "Test/Build Test Assets" };
 
-        // 设置测试环境
-        var packagePath = XEditor.Utility.FindPackage().assetPath;
-
         // 使用包含路径
-        var include = new string[] { "Tests/Runtime/Resources/Bundle", "Tests/Runtime/Scenes" }.
-            Select(path => XFile.PathJoin(packagePath, path)).ToArray();
+        var include = new string[] { "Assets/Tests/Runtime/Resources/Bundle", "Assets/Tests/Runtime/Scenes" };
 
         XPrefs.Asset.Set(Build.Prefs.MergeSingle, false);
         XPrefs.Asset.Set(Build.Prefs.MergeMaterial, true);
@@ -67,14 +62,8 @@ public class TestXAssetBuild : IPrebuildSetup
     [TestCase(true, false, TestName = "合并单包_不合并材质")]
     public void Merge(bool mergeSingle, bool mergeMaterial)
     {
-        // 设置测试环境
-        var packagePath = XEditor.Utility.FindPackage().assetPath;
-
         // 使用固定的包含路径
-        var include = new string[] {
-            "Tests/Runtime/Resources/Bundle",
-            "Tests/Runtime/Scenes"
-        }.Select(path => XFile.PathJoin(packagePath, path)).ToArray();
+        var include = new string[] { "Assets/Tests/Runtime/Resources/Bundle", "Assets/Tests/Runtime/Scenes" };
 
         XPrefs.Asset.Set(Prefs.MergeSingle, mergeSingle);
         XPrefs.Asset.Set(Prefs.MergeMaterial, mergeMaterial);
@@ -110,24 +99,17 @@ public class TestXAssetBuild : IPrebuildSetup
         else Assert.IsTrue(hasMaterialBundle, "未启用MergeMaterial时，材质应有独立Bundle");
     }
 
-    [TestCase(new string[] { "Tests/Runtime/Resources/Bundle/", "Tests/Runtime/Scenes/TestScene.unity" }, new string[] { }, TestName = "路径包含_无排除")]
-    [TestCase(new string[] { "Tests/Runtime/Resources/Bundle/", "Tests/Runtime/Scenes/TestScene.unity" }, new string[] { "Tests/Runtime/Scenes/TestScene.unity" }, TestName = "路径包含_路径排除")]
-    [TestCase(new string[] { "Tests/Runtime/Resources/**/*", "Tests/Runtime/Scenes/**/*.unity" }, new string[] { }, TestName = "通配包含_无排除")]
-    [TestCase(new string[] { "Tests/Runtime/Resources/**/*", "Tests/Runtime/Scenes/**/*.unity" }, new string[] { "Tests/Runtime/Resources/**/*", "Tests/Runtime/Scenes/TestScene2.unity" }, TestName = "通配包含_通配排除")]
+    [TestCase(new string[] { "Assets/Tests/Runtime/Resources/Bundle/", "Assets/Tests/Runtime/Scenes/TestScene.unity" }, new string[] { }, TestName = "路径包含_无排除")]
+    [TestCase(new string[] { "Assets/Tests/Runtime/Resources/Bundle/", "Assets/Tests/Runtime/Scenes/TestScene.unity" }, new string[] { "Assets/Tests/Runtime/Scenes/TestScene.unity" }, TestName = "路径包含_路径排除")]
+    [TestCase(new string[] { "Assets/Tests/Runtime/Resources/**/*", "Assets/Tests/Runtime/Scenes/**/*.unity" }, new string[] { }, TestName = "通配包含_无排除")]
+    [TestCase(new string[] { "Assets/Tests/Runtime/Resources/**/*", "Assets/Tests/Runtime/Scenes/**/*.unity" }, new string[] { "Assets/Tests/Runtime/Resources/**/*", "Assets/Tests/Runtime/Scenes/TestScene2.unity" }, TestName = "通配包含_通配排除")]
     public void Exclude(string[] include, string[] exclude)
     {
-        // 设置测试环境
-        var packagePath = XEditor.Utility.FindPackage().assetPath;
-
-        // 将相对路径转换为绝对路径
-        var absoluteIncludes = include.Select(path => XFile.PathJoin(packagePath, path)).ToArray();
-        var absoluteExcludes = exclude.Select(path => XFile.PathJoin(packagePath, path)).ToArray();
-
         // 使用固定的合并选项
         XPrefs.Asset.Set(Prefs.MergeSingle, false);
         XPrefs.Asset.Set(Prefs.MergeMaterial, false);
-        XPrefs.Asset.Set(Prefs.Include, absoluteIncludes);
-        XPrefs.Asset.Set(Prefs.Exclude, absoluteExcludes);
+        XPrefs.Asset.Set(Prefs.Include, include);
+        XPrefs.Asset.Set(Prefs.Exclude, exclude);
 
         // 执行依赖关系生成
         var dependency = GenDependency();
@@ -139,7 +121,7 @@ public class TestXAssetBuild : IPrebuildSetup
         if (include.Length > 0)
         {
             // 验证包含规则是否正确应用
-            bool allIncluded = true;
+            var allIncluded = true;
             foreach (var inc in include)
             {
                 if (inc.Contains("*") || inc.Contains("?") || inc.Contains("["))
@@ -153,20 +135,19 @@ public class TestXAssetBuild : IPrebuildSetup
                     continue;
                 }
 
-                var fullPath = XFile.PathJoin(packagePath, inc);
-                if (XFile.HasFile(fullPath))
+                if (XFile.HasFile(inc))
                 {
                     // 单个文件
                     var found = false;
                     foreach (var kvp in dependency)
                     {
-                        if (kvp.Value.Any(v => v.Contains(Path.GetFileName(fullPath))))
+                        if (kvp.Value.Any(v => v.Contains(Path.GetFileName(inc))))
                         {
                             found = true;
                             break;
                         }
                     }
-                    if (!found && !exclude.Any(e => e.Contains(Path.GetFileName(fullPath))))
+                    if (!found && !exclude.Any(e => e.Contains(Path.GetFileName(inc))))
                     {
                         allIncluded = false;
                     }
@@ -187,8 +168,8 @@ public class TestXAssetBuild : IPrebuildSetup
                     if (exc.Contains("*.unity"))
                     {
                         // 检查是否有匹配的unity文件被包含
-                        string unityPattern = exc.Replace("*.unity", "");
-                        bool hasUnityFile = false;
+                        var unityPattern = exc.Replace("*.unity", "");
+                        var hasUnityFile = false;
 
                         foreach (var kvp in dependency)
                         {
@@ -207,30 +188,29 @@ public class TestXAssetBuild : IPrebuildSetup
                     continue;
                 }
 
-                var fullPath = XFile.PathJoin(packagePath, exc);
-                bool isExcluded = true;
+                var isExcluded = true;
 
-                if (XFile.HasFile(fullPath))
+                if (XFile.HasFile(exc))
                 {
                     // 单个文件
                     foreach (var kvp in dependency)
                     {
-                        if (kvp.Value.Any(v => v.Contains(Path.GetFileName(fullPath))))
+                        if (kvp.Value.Any(v => v.Contains(Path.GetFileName(exc))))
                         {
                             isExcluded = false;
                             break;
                         }
                     }
-                    Assert.IsTrue(isExcluded, $"文件 {Path.GetFileName(fullPath)} 应被排除");
+                    Assert.IsTrue(isExcluded, $"文件 {Path.GetFileName(exc)} 应被排除");
                 }
-                else if (XFile.HasDirectory(fullPath))
+                else if (XFile.HasDirectory(exc))
                 {
                     // 目录
                     foreach (var kvp in dependency)
                     {
                         foreach (var v in kvp.Value)
                         {
-                            if (v.Contains(fullPath))
+                            if (v.Contains(exc))
                             {
                                 isExcluded = false;
                                 break;

@@ -36,8 +36,8 @@ public class TestXAssetResource
 
         Const.bundleMode = bundleMode;
         // Arrange
-        var path = "Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube";
-        var notExistPath = "Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/NotExist";
+        var path = "Assets/Tests/Runtime/Resources/Bundle/Prefab/TestCube";
+        var notExistPath = "Assets/Tests/Runtime/Resources/Bundle/Prefab/NotExist";
 
         // Act
         var asset1 = Resource.Load(path, typeof(GameObject));
@@ -69,8 +69,8 @@ public class TestXAssetResource
         {
             Const.bundleMode = bundleMode;
             // Arrange
-            var path = "Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube";
-            var notExistPath = "Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/NotExist";
+            var path = "Assets/Tests/Runtime/Resources/Bundle/Prefab/TestCube";
+            var notExistPath = "Assets/Tests/Runtime/Resources/Bundle/Prefab/NotExist";
 
             // Act
             var handler1 = Resource.LoadAsync(path, typeof(GameObject), (asset) =>

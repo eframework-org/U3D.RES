@@ -62,7 +62,7 @@ public class TestXAssetBundle
     {
         // Arrange
         AssetBundle assetBundle = null;
-        var bundleName = Const.GetName("Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube.prefab");
+        var bundleName = Const.GetName("Assets/Tests/Runtime/Resources/Bundle/Prefab/TestCube.prefab");
         var bundle = Bundle.Load(bundleName);
         XAsset.Event.Reg(XAsset.EventType.OnPostUnloadBundle, (AssetBundle ab) => { assetBundle = ab; });
 
@@ -81,7 +81,7 @@ public class TestXAssetBundle
     public void LoadAndUnload()
     {
         // Act
-        var bundleName = Const.GetName("Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube.prefab");
+        var bundleName = Const.GetName("Assets/Tests/Runtime/Resources/Bundle/Prefab/TestCube.prefab");
         // 检查初始状态
         Assert.IsNull(Bundle.Find(bundleName), "初始状态下Bundle不应该被加载。");
         var bundle = Bundle.Load(bundleName);
@@ -107,7 +107,7 @@ public class TestXAssetBundle
     public IEnumerator LoadAsync()
     {
         // Act
-        var bundleName = Const.GetName("Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube.prefab");
+        var bundleName = Const.GetName("Assets/Tests/Runtime/Resources/Bundle/Prefab/TestCube.prefab");
         var handler = new Handler();
         handler.OnPostload += () =>
         {
@@ -123,7 +123,7 @@ public class TestXAssetBundle
     public void LoadSame()
     {
         // Act
-        var bundleName = Const.GetName("Packages/org.eframework.u3d.res/Tests/Runtime/Resources/Bundle/Prefab/TestCube.prefab");
+        var bundleName = Const.GetName("Assets/Tests/Runtime/Resources/Bundle/Prefab/TestCube.prefab");
         var bundle1 = Bundle.Load(bundleName);
         var bundle2 = Bundle.Load(bundleName);
 

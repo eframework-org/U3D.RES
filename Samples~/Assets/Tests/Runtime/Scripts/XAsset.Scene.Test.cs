@@ -17,7 +17,7 @@ using static EFramework.Asset.XAsset;
 [PrebuildSetup(typeof(TestXAssetBuild))]
 public class TestXAssetScene
 {
-    internal const string TestScene = "Packages/org.eframework.u3d.res/Tests/Runtime/Scenes/TestScene";
+    internal const string TestScene = "Assets/Tests/Runtime/Scenes/TestScene";
 
     [OneTimeSetUp]
     public void Init()
