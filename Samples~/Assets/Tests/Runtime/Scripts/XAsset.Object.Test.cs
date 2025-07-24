@@ -6,55 +6,41 @@
 using NUnit.Framework;
 using EFramework.Asset;
 using UnityEngine;
-using UnityEngine.TestTools;
-using System.Text.RegularExpressions;
 using static EFramework.Asset.XAsset;
-using EFramework.Utility;
 
 public class TestXAssetObject
 {
-    private GameObject testGameObject;
     private XAsset.Object testObject;
-
-    [OneTimeSetUp]
-    public void Init()
-    {
-        Const.bundleMode = true;
-        Bundle.Initialize();
-    }
-
-    [OneTimeTearDown]
-    public void Cleanup()
-    {
-        AssetBundle.UnloadAllAssetBundles(true);
-        Bundle.Loaded.Clear();
-        Const.bBundleMode = false;
-        Bundle.Initialize();
-    }
+    private Bundle testBundle;
 
     [SetUp]
     public void Setup()
     {
-        testGameObject = new GameObject("TestObject");
-        testGameObject.SetActive(false);
-        testObject = testGameObject.AddComponent<XAsset.Object>();
-        testObject.Source = "TestBundle";
-        var bundle = new Bundle { Name = "TestBundle", Count = 0 };
-        Bundle.Loaded.Add(bundle.Name, bundle);
-        testGameObject.SetActive(true);
+        Const.bundleMode = true;
+        Bundle.Initialize();
+
+        testBundle = new Bundle { Name = "TestBundle", Count = 0 };
+        Bundle.Loaded.Add(testBundle.Name, testBundle);
+
+        var tempObject = new GameObject("TestObject");
+        tempObject.SetActive(false);
+        testObject = tempObject.AddComponent<XAsset.Object>();
+        testObject.Source = testBundle.Name;
+        tempObject.SetActive(true);
     }
 
     [TearDown]
     public void Reset()
     {
-        if (testGameObject != null)
+        if (testObject != null)
         {
-            GameObject.Destroy(testGameObject);
-            testGameObject = null;
+            UnityEngine.Object.DestroyImmediate(testObject.gameObject);
         }
-        XAsset.Object.Loaded.Clear();
-        Bundle.Loaded.Clear();
         testObject = null;
+        AssetBundle.UnloadAllAssetBundles(true);
+        Bundle.Loaded.Clear();
+        Const.bBundleMode = false;
+        Bundle.Initialize();
     }
 
     [Test]
@@ -77,137 +63,29 @@ public class TestXAssetObject
     }
 
     [Test]
-    public void OnDestroy()
+    public void OnAwake()
     {
-        // Arrange
-        Assert.AreEqual(1, testObject.Count, "初始计数应为1。");
-
-        // Act
-        // 销毁对象
-        GameObject.DestroyImmediate(testGameObject);
-        testGameObject = null;
-
-        // Assert
-        Assert.AreEqual(0, testObject.Count, "OnDestroy后计数应减至0。");
+        Assert.AreEqual(1, testBundle.Count, "游戏对象实例化之后的引用计数应当为1");
     }
 
     [Test]
-    public void OnAwake()
+    public void OnDestroy()
     {
-        // Arrange
-        GameObject tempGO = new GameObject("TempObject");
-        tempGO.SetActive(false);
-        XAsset.Object tempObj = tempGO.AddComponent<XAsset.Object>();
-        tempObj.Source = "NonExistentBundle"; // 设置一个不存在的资源包
+        var tempObject = UnityEngine.Object.Instantiate(testObject);
+        Assert.AreEqual(2, testBundle.Count, "游戏对象再次实例化之后的引用计数应当为2");
 
-        // Act
-        tempGO.SetActive(true); // 触发Awake
-
-        // Assert
-        Assert.AreEqual(1, tempObj.Count, "即使资源包不存在，计数仍应增加到1。");
-
-        // Cleanup
-        GameObject.DestroyImmediate(tempGO);
+        UnityEngine.Object.DestroyImmediate(tempObject);
+        Assert.AreEqual(1, testBundle.Count, "游戏对象销毁之后的引用计数应当为1");
     }
 
-    [TestCase(true)]
-    [TestCase(false)]
-    public void Obtain(bool referMode)
+    [Test]
+    public void Manual()
     {
-        // Arrange
-        Const.bReferMode = false;
-        XPrefs.Asset.Set(Prefs.ReferMode, referMode);
+        XAsset.Object.Obtain(testObject.gameObject);
+        Assert.AreEqual(2, testBundle.Count, "引用指定游戏对象的资源包后的计数应当为2");
 
-        // 准备测试对象
-        testObject.Count = 0; // 设置Count为0，使其可以被获取
-
-        // Act
-        XAsset.Object.Obtain(testGameObject);
-
-        // Assert
-        Assert.AreEqual(referMode, testObject.Count == -1, "Obtain后计数应设置为-1。");
-
-        if (referMode)
-        {
-            testObject.Count = 1; // 设置Count为1，使其不能被获取
-            LogAssert.Expect(LogType.Error, new Regex(@".*can not obtain object on an instantiated asset.*"));
-            XAsset.Object.Obtain(testGameObject);
-            Assert.AreEqual(1, testObject.Count, "当对实例化资产调用Obtain时，计数应保持为1。");
-        }
-    }
-
-    [TestCase(true)]
-    [TestCase(false)]
-    public void Release(bool referMode)
-    {
-        Const.bReferMode = false;
-        // Arrange
-        XPrefs.Asset.Set(Prefs.ReferMode, referMode);
-
-        // Act
-        testObject.Obtain();
-
-        // Assert
-        XAsset.Object.Release(testGameObject);
-        Assert.AreEqual(referMode, testObject.Count == 0, "当ReferMode为true时，计数应为0。");
-
-        // 测试不能被释放的情况
-        if (referMode)
-        {
-            testObject.Count = 1; // 设置Count为1，使其不能被释放
-            LogAssert.Expect(LogType.Error, new Regex(@".*can not unload object on an instantiated asset.*"));
-            XAsset.Object.Release(testGameObject);
-            Assert.AreEqual(1, testObject.Count, "当对实例化资产调用Release时，计数应保持为1。");
-        }
-    }
-
-    [TestCase(true)]
-    [TestCase(false)]
-    public void Cleanup(bool debugMode)
-    {
-        // 测试Scene.Loaded
-        XAsset.Object.Cleanup();
-        Assert.AreEqual(XAsset.Object.Loaded.Count, 0);
-
-        // 准备Object
-        var testGameObject = new GameObject("TestObject");
-        testGameObject.SetActive(false);
-        var testObject1 = testGameObject.AddComponent<XAsset.Object>(); // Count = -1
-        var testObject2 = testGameObject.AddComponent<XAsset.Object>(); // Count = 0
-        var testObject3 = testGameObject.AddComponent<XAsset.Object>(); // Count > 0
-        testObject1.Source = "TestBundle1";
-        testObject2.Source = "TestBundle2";
-        testObject3.Source = "TestBundle3";
-        var bundle1 = new XAsset.Bundle { Name = "TestBundle1", Count = 0 };
-        var bundle2 = new XAsset.Bundle { Name = "TestBundle2", Count = 0 };
-        var bundle3 = new XAsset.Bundle { Name = "TestBundle3", Count = 0 };
-        XAsset.Bundle.Loaded.Add(bundle1.Name, bundle1);
-        XAsset.Bundle.Loaded.Add(bundle2.Name, bundle2);
-        XAsset.Bundle.Loaded.Add(bundle3.Name, bundle3);
-        testGameObject.SetActive(true);
-
-        XAsset.Const.debugMode = debugMode;
-        testObject1.Count = -1;
-        testObject2.Count = 1;
-        testObject3.Count = 2;
-        bundle1.Count = -1;
-        bundle2.Count = 0;
-        bundle3.Count = 1;
-        if (debugMode)
-        {
-            XAsset.Object.Cleanup();
-            Assert.IsTrue(testObject1.Count == -1);
-            Assert.IsTrue(testObject2.Count == 1);
-            Assert.IsTrue(testObject3.Count == 2);
-        }
-        else
-        {
-            XAsset.Object.Cleanup();
-            Assert.IsTrue(bundle1.Count == -1);
-            Assert.IsTrue(bundle2.Count == -1);
-            Assert.IsTrue(bundle3.Count == -1);
-        }
-        Assert.IsTrue(XAsset.Object.Loaded.Count == 0);
+        XAsset.Object.Release(testObject.gameObject);
+        Assert.AreEqual(1, testBundle.Count, "释放指定游戏对象的资源包后的计数应当为1");
     }
 }
 #endif

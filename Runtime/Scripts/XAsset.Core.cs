@@ -310,10 +310,6 @@ namespace EFramework.Asset
 
                     if (Const.BundleMode)
                     {
-                        XLog.Info("XAsset.OnInit: start to cleanup by scene: {0} unloaded, cached bundle count: {1}.", scene.name, Bundle.Loaded.Count);
-                        if (Const.ReferMode) Object.Cleanup();
-                        XLog.Info("XAsset.OnInit: finish to cleanup by scene: {0} unloaded, cached bundle count: {1}.", scene.name, Bundle.Loaded.Count);
-
                         foreach (var kvp in Scene.Loaded) Scene.Unload(kvp.Value);
                         Scene.Loaded.Clear();
                     }

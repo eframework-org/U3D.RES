@@ -8,53 +8,28 @@ XAsset.Object 通过引用计数机制跟踪资源（Prefab）实例（GameObjec
 
 ## 功能特性
 
-- 引用计数管理：通过引用计数跟踪资源使用情况
-- 全局实例追踪：统一管理和清理全局资源实例列表
+- 保持引用：引用指定游戏对象的资源包
+- 释放引用：释放指定游戏对象的资源包
 
 ## 使用手册
 
-### 1. 释放引用
-- 功能说明：释放指定游戏对象持有的资源
-- 方法签名：
-```csharp
-public static void Release(GameObject gameObject)
-```
-- 使用示例：
-```csharp
-XAsset.Object.Release(testGameObject);
-```
-
-### 2. 保持引用
-- 功能说明：手动引用指定游戏对象的资源，防止资源被卸载
+### 1. 保持引用
+- 功能说明：引用指定游戏对象的资源包
+- 注意事项：建议使用未实例化的源对象，避免过度引用导致资源包计数异常
 - 方法签名：
 ```csharp
 public static void Obtain(GameObject gameObject)
 ```
-- 使用示例：
-```csharp
-XAsset.Object.Obtain(testGameObject);
-```
 
-### 3. 清理实例
-- 功能说明：清理所有已加载的资源对象，释放未被引用的资源
+### 2. 释放引用
+- 功能说明：释放指定游戏对象的资源包
+- 注意事项：建议使用未实例化的源对象，避免过度释放导致资源包提早卸载
 - 方法签名：
 ```csharp
-public static void Cleanup()
-```
-- 使用示例：
-```csharp
-XAsset.Object.Cleanup();
+public static void Release(GameObject gameObject)
 ```
 
 ## 常见问题
-
-### 1. 为什么资源没有被卸载？
-- 检查引用计数是否已降为 0
-- 确保没有其他对象手动引用该资源
-
-### 2. 如何避免资源泄漏？
-- 在不再需要资源时，调用 `Release` 方法释放引用
-- 使用 `Cleanup` 方法清理未被引用的资源
 
 更多问题，请查阅[问题反馈](../CONTRIBUTING.md#问题反馈)。
 

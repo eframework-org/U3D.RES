@@ -1,5 +1,9 @@
 # 更新记录
 
+## [0.1.0] - 2025-07-24
+### 变更
+- 重构 Object 模块的实现，立即释放引用的资源包，不再等待场景卸载事件
+
 ## [0.0.9] - 2025-07-07
 ### 变更
 - 修改 Asset/Build/Output@Editor 的默认值为 Builds/Patch/${Env.Platform}/Assets
