@@ -146,8 +146,12 @@ namespace EFramework.Asset
                         var assetName = path[(lastPart + 1)..];
                         var bundleName = Const.GetName(path);
                         var bundle = Bundle.Load(bundleName);
-                        if (bundle != null) asset = bundle.Source.LoadAsset(assetName, type);
-                        if (asset is GameObject gameObject) Object.Watch(gameObject, bundleName);
+                        if (bundle != null)
+                        {
+                            asset = bundle.Source.LoadAsset(assetName, type);
+                            if (asset is GameObject gameObject) Object.Watch(gameObject, bundleName);
+                        }
+                        else XLog.Error("XAsset.Resource.Load: sync load error: {0}", path);
                     }
                 }
                 catch (Exception e) { throw e; }
@@ -277,7 +281,7 @@ namespace EFramework.Asset
                     }
                     else
                     {
-                        XLog.Error("XAsset.Resource.LoadAsync: async load error: {0}", bundleName);
+                        XLog.Error("XAsset.Resource.LoadAsync: async load error: {0}", path);
 
                         // 加载错误时仍旧回调，业务层可根据 handler.Error 判断是否加载成功
                         handler.Error = true;

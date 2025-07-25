@@ -66,7 +66,7 @@ namespace EFramework.Asset
                 if (Const.ReferMode)
                 {
                     var bundle = Bundle.Find(Source);
-                    bundle?.Obtain(Const.DebugMode ? $"[XAsset.Object.Awake: {Label}]" : "");
+                    bundle?.Obtain(Const.DebugMode ? $"[Object.Awake: {Label}]" : "");
                 }
             }
 
@@ -78,7 +78,7 @@ namespace EFramework.Asset
                 if (Const.ReferMode)
                 {
                     var bundle = Bundle.Find(Source);
-                    bundle?.Release(Const.DebugMode ? $"[XAsset.Object.OnDestroy: {Label}]" : "");
+                    bundle?.Release(Const.DebugMode ? $"[Object.OnDestroy: {Label}]" : "");
                 }
             }
 
@@ -119,7 +119,7 @@ namespace EFramework.Asset
                     foreach (var refer in originalObjects)
                     {
                         var bundle = Bundle.Find(refer.Source);
-                        bundle?.Release(Const.DebugMode ? $"[XAsset.Object.Defer: {refer.Label}]" : "");
+                        bundle?.Release(Const.DebugMode ? $"[Object.Defer: {refer.Label}]" : "");
                         XLog.Info("XAsset.Object.Defer: release {0} by {1}.", refer.Source, refer.Label);
                     }
                     originalObjects.Clear();
@@ -180,7 +180,7 @@ namespace EFramework.Asset
                         if (obtainedIndex >= 0) obtainedObjects.RemoveAt(obtainedIndex);
 
                         var bundle = Bundle.Find(refer.Source);
-                        bundle?.Release(Const.DebugMode ? $"[XAsset.Object.Release: {refer.Label}]" : "");
+                        bundle?.Release(Const.DebugMode ? $"[Object.Release: {refer.Label}]" : "");
                         XLog.Info("XAsset.Object.Release: release {0} by {1}.", refer.Source, refer.Label);
                     }
                 }
