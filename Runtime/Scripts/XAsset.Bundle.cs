@@ -138,13 +138,13 @@ namespace EFramework.Asset
                         if (Loaded.TryGetValue(dependency, out var dependBundle))
                         {
                             dependBundle.Count--;
-                            if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Release: depend bundle: {0}, reference count: {1}, cached bundle count: {2}, release from: {3}", dependBundle.Name, dependBundle.Count, Loaded.Count, from);
+                            if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Release: depend bundle: {0}, reference count: {1}, cached bundle count: {2}, release from: {3}.", dependBundle.Name, dependBundle.Count, Loaded.Count, from);
                             if (dependBundle.Source == null) Loaded.Remove(dependency);
                             else if (dependBundle.Count <= 0)
                             {
                                 dependBundle.Source.Unload(true);
                                 Loaded.Remove(dependency);
-                                if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Release: unload depend bundle: {0}, reference count: {1}, release from: {2}", dependBundle.Name, Loaded.Count, from);
+                                if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Release: unload depend bundle: {0}, cached bundle: {1}, release from: {2}.", dependBundle.Name, Loaded.Count, from);
                                 try { Event.Notify(EventType.OnPostUnloadBundle, dependBundle.Source); }
                                 catch (Exception e) { XLog.Panic(e); }
                             }
@@ -152,7 +152,7 @@ namespace EFramework.Asset
                     }
                 }
                 Count--;
-                if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Release: main bundle: {0}, reference count: {1}, cached bundle count: {2}, release from: {3}", Name, Count, Loaded.Count, from);
+                if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Release: main bundle: {0}, reference count: {1}, cached bundle count: {2}, release from: {3}.", Name, Count, Loaded.Count, from);
                 if (Source == null)
                 {
                     Loaded.Remove(Name);
@@ -163,7 +163,7 @@ namespace EFramework.Asset
                     catch (Exception e) { XLog.Panic(e); }
                     Source.Unload(true);
                     Loaded.Remove(Name);
-                    if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Release: unload main bundle: {0}, cached bundle count: {1}, release from: {2}", Name, Loaded.Count, from);
+                    if (Const.DebugMode) XLog.Debug("XAsset.Bundle.Release: unload main bundle: {0}, cached bundle count: {1}, release from: {2}.", Name, Loaded.Count, from);
                 }
                 return Count;
             }
@@ -284,7 +284,7 @@ namespace EFramework.Asset
                                     var bundle = AssetBundle.LoadFromFile(path, 0, Const.GetOffset(dependency));
                                     if (bundle == null)
                                     {
-                                        XLog.Error("XAsset.Bundle.Load: sync load depend bundle error: {0}", dependency);
+                                        XLog.Error("XAsset.Bundle.Load: sync load depend bundle error: {0}.", dependency);
                                         breakDependency = i;
 
                                         task.Bundle = null;
@@ -339,7 +339,7 @@ namespace EFramework.Asset
                     var mainBundle = AssetBundle.LoadFromFile(bundleFile, 0, Const.GetOffset(name));
                     if (mainBundle == null)
                     {
-                        XLog.Error("XAsset.Bundle.Load: sync load main bundle error: {0}", name);
+                        XLog.Error("XAsset.Bundle.Load: sync load main bundle error: {0}.", name);
 
                         // 如果主包加载失败，则解除对所有依赖的引用
                         if (dependencies != null && dependencies.Length > 0)
@@ -410,7 +410,7 @@ namespace EFramework.Asset
                                 {
                                     if (task.Bundle == null)
                                     {
-                                        XLog.Error("XAsset.Bundle.LoadAsync: async load depend bundle error: {0}", dependency);
+                                        XLog.Error("XAsset.Bundle.LoadAsync: async load depend bundle error: {0}.", dependency);
                                         breakDependency = i;
                                         break;
                                     }
@@ -461,7 +461,7 @@ namespace EFramework.Asset
                         else yield return new WaitUntil(() => task.IsDone);
                         if (task.Bundle == null)
                         {
-                            XLog.Error("XAsset.Bundle.LoadAsync: async load main bundle error: {0}", name);
+                            XLog.Error("XAsset.Bundle.LoadAsync: async load main bundle error: {0}.", name);
 
                             // 如果主包加载失败，则解除对所有依赖的引用
                             if (dependencies != null && dependencies.Length > 0)
