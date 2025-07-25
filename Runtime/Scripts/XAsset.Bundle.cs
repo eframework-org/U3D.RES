@@ -273,11 +273,11 @@ namespace EFramework.Asset
                         for (var i = 0; i < dependencies.Length; i++)
                         {
                             var dependency = dependencies[i];
-                            if (!Loaded.TryGetValue(dependency, out var dependBundle))
+                            if (!Loaded.ContainsKey(dependency))
                             {
-                                if (!Loading.TryGetValue(dependency, out var task))
+                                if (!Loading.ContainsKey(dependency))
                                 {
-                                    task = new Task() { Name = dependency };
+                                    var task = new Task() { Name = dependency };
                                     Loading.Add(dependency, task);
 
                                     var path = XFile.PathJoin(Const.LocalPath, dependency);
@@ -295,7 +295,7 @@ namespace EFramework.Asset
                                     }
                                     else
                                     {
-                                        dependBundle = new Bundle() { Name = dependency, Source = bundle, Count = 1 };
+                                        var dependBundle = new Bundle() { Name = dependency, Source = bundle };
                                         Loaded.Add(dependency, dependBundle);
 
                                         task.Bundle = bundle;
@@ -304,19 +304,7 @@ namespace EFramework.Asset
                                         Loading.Remove(dependency);
                                     }
                                 }
-                                else
-                                {
-                                    // 异步加载完成的回调
-                                    task.OnPostload += () =>
-                                    {
-                                        if (Loaded.TryGetValue(task.Name, out var dependBundle))
-                                        {
-                                            dependBundle.Obtain(Const.DebugMode ? $"[Sync.Load.1: {name}]" : "");
-                                        }
-                                    };
-                                }
                             }
-                            else dependBundle.Obtain(Const.DebugMode ? $"[Sync.Load.2: {name}]" : "");
                         }
 
                         // 如果有任何一个依赖加载失败，则解除对已加载依赖的引用
@@ -327,7 +315,12 @@ namespace EFramework.Asset
                                 var dependency = dependencies[i];
                                 if (Loaded.TryGetValue(dependency, out var dependBundle))
                                 {
-                                    dependBundle.Release(Const.DebugMode ? $"[Sync.Load.3: {name}]" : "");
+                                    if (dependBundle.Count == 0 && dependBundle.Source) // 只处理未被引用的 Bundle
+                                    {
+                                        dependBundle.Source.Unload(true);
+                                        Loaded.Remove(dependency);
+                                        XLog.Warn("XAsset.Bundle.Load: unload: {0} because of broken depend bundle: {1}.", dependency, dependencies[breakDependency]);
+                                    }
                                 }
                             }
 
@@ -347,27 +340,28 @@ namespace EFramework.Asset
                             for (var i = 0; i < dependencies.Length; i++)
                             {
                                 var dependency = dependencies[i];
-                                if (Loaded.TryGetValue(dependency, out var tmp))
+                                if (Loaded.TryGetValue(dependency, out var dependBundle))
                                 {
-                                    tmp.Release(Const.DebugMode ? $"[Sync.Load.4: {name}]" : "");
+                                    if (dependBundle.Count == 0 && dependBundle.Source) // 只处理未被引用的 Bundle
+                                    {
+                                        dependBundle.Source.Unload(true);
+                                        Loaded.Remove(dependency);
+                                        XLog.Warn("XAsset.Bundle.Load: unload: {0} because of broken main bundle: {1}.", dependency, name);
+                                    }
                                 }
                             }
                         }
 
                         return null; // 不再执行后续流程
                     }
-                    else
-                    {
-                        bundleInfo = new Bundle() { Name = name, Source = mainBundle, Count = 1 };
-                        Loaded.Add(name, bundleInfo);
-                        return bundleInfo;
-                    }
+
+                    bundleInfo = new Bundle() { Name = name, Source = mainBundle };
+                    Loaded.Add(name, bundleInfo);
                 }
-                else
-                {
-                    bundleInfo.Obtain(Const.DebugMode ? $"[Sync.Load.5: {name}]" : "");
-                    return bundleInfo;
-                }
+
+                // 引用主包及其依赖包
+                bundleInfo.Obtain(Const.DebugMode ? $"[Bundle.Load: {name}]" : "");
+                return bundleInfo;
             }
 
             /// <summary>
@@ -378,7 +372,7 @@ namespace EFramework.Asset
             /// <returns>异步加载的协程对象</returns>
             public static IEnumerator LoadAsync(string name, Handler handler)
             {
-                if (!Loaded.TryGetValue(name, out Bundle info))
+                if (!Loaded.TryGetValue(name, out var bundleInfo))
                 {
                     var dependencies = Manifest.GetAllDependencies(name);
                     handler.totalCount += dependencies.Length + 1; // Self and Dependency
@@ -416,13 +410,11 @@ namespace EFramework.Asset
                                     }
                                     else
                                     {
-                                        var bundle = new Bundle() { Name = dependency, Source = task.Bundle, Count = 1 };
+                                        var bundle = new Bundle() { Name = dependency, Source = task.Bundle };
                                         Loaded.Add(dependency, bundle);
                                     }
                                 }
-                                else dependBundle.Obtain(Const.DebugMode ? $"[Async.Load.1: {name}]" : "");
                             }
-                            else dependBundle.Obtain(Const.DebugMode ? $"[Async.Load.2: {name}]" : "");
                             handler.doneCount++;
                         }
 
@@ -434,7 +426,12 @@ namespace EFramework.Asset
                                 var dependency = dependencies[i];
                                 if (Loaded.TryGetValue(dependency, out var dependBundle))
                                 {
-                                    dependBundle.Release(Const.DebugMode ? $"[Async.Load.3: {name}]" : "");
+                                    if (dependBundle.Count == 0 && dependBundle.Source) // 只处理未被引用的 Bundle
+                                    {
+                                        dependBundle.Source.Unload(true);
+                                        Loaded.Remove(dependency);
+                                        XLog.Warn("XAsset.Bundle.LoadAsync: unload: {0} because of broken depend bundle: {1}.", dependency, dependencies[breakDependency]);
+                                    }
                                 }
                             }
 
@@ -471,7 +468,12 @@ namespace EFramework.Asset
                                     var dependency = dependencies[i];
                                     if (Loaded.TryGetValue(dependency, out var dependBundle))
                                     {
-                                        dependBundle.Release(Const.DebugMode ? $"[Async.Load.4: {name}]" : "");
+                                        if (dependBundle.Count == 0 && dependBundle.Source) // 只处理未被引用的 Bundle
+                                        {
+                                            dependBundle.Source.Unload(true);
+                                            Loaded.Remove(dependency);
+                                            XLog.Warn("XAsset.Bundle.LoadAsync: unload: {0} because of broken main bundle: {1}.", dependency, name);
+                                        }
                                     }
                                 }
                             }
@@ -480,18 +482,18 @@ namespace EFramework.Asset
                         }
                         else
                         {
-                            if (!Loaded.TryGetValue(name, out mainBundle))
+                            if (!Loaded.TryGetValue(name, out bundleInfo))
                             {
-                                mainBundle = new Bundle() { Name = name, Source = task.Bundle, Count = 1 };
-                                Loaded.Add(name, mainBundle);
+                                bundleInfo = new Bundle() { Name = name, Source = task.Bundle };
+                                Loaded.Add(name, bundleInfo);
                             }
-                            else mainBundle.Obtain(Const.DebugMode ? $"[Async.Load.5: {name}]" : "");
                         }
                     }
-                    else mainBundle.Obtain(Const.DebugMode ? $"[Async.Load.6: {name}]" : "");
                     handler.doneCount++;
                 }
-                else info.Obtain(Const.DebugMode ? $"[Async.Load.7: {name}]" : "");
+
+                // 引用主包及其依赖包
+                bundleInfo.Obtain(Const.DebugMode ? $"[Bundle.LoadAsync: {name}]" : "");
             }
 
             /// <summary>
