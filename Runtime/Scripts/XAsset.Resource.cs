@@ -147,10 +147,7 @@ namespace EFramework.Asset
                         var bundleName = Const.GetName(path);
                         var bundle = Bundle.Load(bundleName);
                         if (bundle != null) asset = bundle.Source.LoadAsset(assetName, type);
-                        if (Const.ReferMode && asset is GameObject gameObject)
-                        {
-                            gameObject.AddComponent<Object>().Source = bundleName;
-                        }
+                        if (asset is GameObject gameObject) Object.Watch(gameObject, bundleName);
                     }
                 }
                 catch (Exception e) { throw e; }
@@ -264,10 +261,7 @@ namespace EFramework.Asset
                             asset = request.asset;
                             Loading.Remove(path);
                             handler.doneCount++;
-                            if (Const.ReferMode && asset is GameObject gameObject)
-                            {
-                                gameObject.AddComponent<Object>().Source = bundleName;
-                            }
+                            if (asset is GameObject gameObject) Object.Watch(gameObject, bundleName);
                             handler.InvokePostload();
                         }
                         else
@@ -276,10 +270,7 @@ namespace EFramework.Asset
                             handler.InvokePreload();
                             yield return new WaitUntil(() => task.Request.isDone);
                             handler.doneCount++;
-                            if (Const.ReferMode && asset is GameObject gameObject)
-                            {
-                                gameObject.AddComponent<Object>().Source = bundleName;
-                            }
+                            if (asset is GameObject gameObject) Object.Watch(gameObject, bundleName);
                             handler.InvokePostload();
                         }
                         asset = (task.Request as AssetBundleRequest).asset;

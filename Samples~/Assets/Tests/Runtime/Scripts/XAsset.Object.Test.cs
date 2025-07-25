@@ -10,7 +10,7 @@ using static EFramework.Asset.XAsset;
 
 public class TestXAssetObject
 {
-    private XAsset.Object testObject;
+    private XAsset.Object testRefer;
     private Bundle testBundle;
 
     [SetUp]
@@ -24,20 +24,21 @@ public class TestXAssetObject
 
         var tempObject = new GameObject("TestObject");
         tempObject.SetActive(false);
-        testObject = tempObject.AddComponent<XAsset.Object>();
-        testObject.Source = testBundle.Name;
+        testRefer = XAsset.Object.Watch(tempObject, testBundle.Name);
         tempObject.SetActive(true);
     }
 
     [TearDown]
     public void Reset()
     {
-        if (testObject != null)
+        if (testRefer != null)
         {
-            UnityEngine.Object.DestroyImmediate(testObject.gameObject);
+            UnityEngine.Object.DestroyImmediate(testRefer.gameObject);
         }
-        testObject = null;
+        testRefer = null;
         AssetBundle.UnloadAllAssetBundles(true);
+        XAsset.Object.originalObjects.Clear();
+        XAsset.Object.obtainedObjects.Clear();
         Bundle.Loaded.Clear();
         Const.bBundleMode = false;
         Bundle.Initialize();
@@ -47,10 +48,10 @@ public class TestXAssetObject
     public void Label()
     {
         // Arrange
-        testObject.label = null; // 确保label为空
+        testRefer.label = null; // 确保label为空
 
         // Act
-        var label = testObject.Label;
+        var label = testRefer.Label;
 
         // Assert
         Assert.IsNotNull(label, "Label不应为空。");
@@ -58,34 +59,49 @@ public class TestXAssetObject
         Assert.IsTrue(label.Contains("@"), "Label应包含@分隔符。");
 
         // 测试缓存功能
-        var cachedLabel = testObject.Label;
+        var cachedLabel = testRefer.Label;
         Assert.AreEqual(label, cachedLabel, "对Label的后续调用应返回缓存值。");
     }
 
     [Test]
     public void OnAwake()
     {
-        Assert.AreEqual(1, testBundle.Count, "游戏对象实例化之后的引用计数应当为1");
+        Assert.AreEqual(1, testBundle.Count, "游戏对象实例化之后的引用计数应当为1。");
     }
 
     [Test]
     public void OnDestroy()
     {
-        var tempObject = UnityEngine.Object.Instantiate(testObject);
-        Assert.AreEqual(2, testBundle.Count, "游戏对象再次实例化之后的引用计数应当为2");
+        var tempObject = UnityEngine.Object.Instantiate(testRefer);
+        Assert.AreEqual(2, testBundle.Count, "游戏对象再次实例化之后的引用计数应当为2。");
 
         UnityEngine.Object.DestroyImmediate(tempObject);
-        Assert.AreEqual(1, testBundle.Count, "游戏对象销毁之后的引用计数应当为1");
+        Assert.AreEqual(1, testBundle.Count, "游戏对象销毁之后的引用计数应当为1。");
+    }
+
+    [Test]
+    public void Automatic()
+    {
+        var tempObject = new GameObject("TempObject");
+        tempObject.SetActive(false);
+        var tempRefer = XAsset.Object.Watch(tempObject, testBundle.Name);
+        Assert.IsTrue(XAsset.Object.originalObjects.Contains(tempRefer), "游戏对象应当在原始的列表中。");
+
+        XAsset.Object.Defer();
+        Assert.IsFalse(XAsset.Object.originalObjects.Contains(tempRefer), "游戏对象不应当在原始的列表中。");
     }
 
     [Test]
     public void Manual()
     {
-        XAsset.Object.Obtain(testObject.gameObject);
-        Assert.AreEqual(2, testBundle.Count, "引用指定游戏对象的资源包后的计数应当为2");
+        XAsset.Object.Obtain(testRefer.gameObject);
+        Assert.AreEqual(2, testBundle.Count, "引用指定游戏对象的资源包后的计数应当为2。");
+        Assert.IsFalse(XAsset.Object.originalObjects.Contains(testRefer), "游戏对象不应当在原始的列表中。");
+        Assert.IsTrue(XAsset.Object.obtainedObjects.Contains(testRefer), "游戏对象应当在被保持的列表中。");
 
-        XAsset.Object.Release(testObject.gameObject);
-        Assert.AreEqual(1, testBundle.Count, "释放指定游戏对象的资源包后的计数应当为1");
+        XAsset.Object.Release(testRefer.gameObject);
+        Assert.AreEqual(1, testBundle.Count, "释放指定游戏对象的资源包后的计数应当为1。");
+        Assert.IsFalse(XAsset.Object.obtainedObjects.Contains(testRefer), "游戏对象不应当在被保持的列表中。");
     }
 }
 #endif

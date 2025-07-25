@@ -84,7 +84,7 @@ namespace EFramework.Asset
     ///       - 通过 isSubScene 标志判断是主场景还是子场景，主场景卸载时执行全局清理
     ///       - 主场景卸载触发 OnPreUnloadAll 事件，通知清理即将开始
     ///       - 根据系统配置检查引用模式，决定是否清理未使用对象
-    ///       - 引用模式启用时，执行 Object.Cleanup 处理所有加载对象的引用状态
+    ///       - 引用模式启用时，执行 Object.Defer 处理所有原始对象的引用状态
     ///       - 处理完成后，卸载所有场景资源并清空场景记录
     ///       - 流程最后触发 OnPostUnloadAll 事件，表示清理完成
     /// 
@@ -310,6 +310,8 @@ namespace EFramework.Asset
 
                     if (Const.BundleMode)
                     {
+                        Object.Defer();
+
                         foreach (var kvp in Scene.Loaded) Scene.Unload(kvp.Value);
                         Scene.Loaded.Clear();
                     }
