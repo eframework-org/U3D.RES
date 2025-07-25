@@ -15,7 +15,6 @@ XAsset.Object 用于跟踪资源（Prefab）实例（GameObject）的使用情�
 
 ### 1. 保持引用
 - 功能说明：引用指定游戏对象的资源包
-- 注意事项：建议使用未实例化的源对象，避免过度引用导致资源包计数异常
 - 方法签名：
 ```csharp
 public static void Obtain(GameObject gameObject)
@@ -23,7 +22,6 @@ public static void Obtain(GameObject gameObject)
 
 ### 2. 释放引用
 - 功能说明：释放指定游戏对象的资源包
-- 注意事项：建议使用未实例化的源对象，避免过度释放导致资源包提早卸载
 - 方法签名：
 ```csharp
 public static void Release(GameObject gameObject)

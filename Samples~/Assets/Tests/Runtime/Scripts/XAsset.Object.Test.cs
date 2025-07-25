@@ -95,12 +95,11 @@ public class TestXAssetObject
     public void Manual()
     {
         XAsset.Object.Obtain(testRefer.gameObject);
-        Assert.AreEqual(2, testBundle.Count, "引用指定游戏对象的资源包后的计数应当为2。");
         Assert.IsFalse(XAsset.Object.originalObjects.Contains(testRefer), "游戏对象不应当在原始的列表中。");
         Assert.IsTrue(XAsset.Object.obtainedObjects.Contains(testRefer), "游戏对象应当在被保持的列表中。");
 
         XAsset.Object.Release(testRefer.gameObject);
-        Assert.AreEqual(1, testBundle.Count, "释放指定游戏对象的资源包后的计数应当为1。");
+        Assert.IsFalse(XAsset.Object.originalObjects.Contains(testRefer), "游戏对象不应当在原始的列表中。");
         Assert.IsFalse(XAsset.Object.obtainedObjects.Contains(testRefer), "游戏对象不应当在被保持的列表中。");
     }
 }

@@ -22,13 +22,11 @@ namespace EFramework.Asset
         /// 使用手册
         /// 1. 保持引用
         /// - 功能说明：引用指定游戏对象的资源包
-        /// - 注意事项：建议使用未实例化的源对象，避免过度引用导致资源包计数异常
         /// - 方法签名：
         ///   public static void Release(GameObject gameObject)
         ///
         /// 2. 释放引用
         /// - 功能说明：释放指定游戏对象的资源包
-        /// - 注意事项：建议使用未实例化的源对象，避免过度释放导致资源包提早卸载
         /// - 方法签名：
         ///   public static void Obtain(GameObject gameObject)
         /// </code>
@@ -131,7 +129,7 @@ namespace EFramework.Asset
             /// <summary>
             /// Obtain 引用指定游戏对象的资源包。
             /// </summary>
-            /// <param name="originalObject">要引用资源包的游戏对象，建议使用未实例化的源对象，避免过度引用导致资源包计数异常。</param>
+            /// <param name="originalObject">要引用资源包的游戏对象</param>
             public static void Obtain(GameObject originalObject)
             {
                 if (originalObject && Const.ReferMode)
@@ -148,8 +146,11 @@ namespace EFramework.Asset
                         originalObjects.Remove(refer);
                         obtainedObjects.Add(refer);
 
-                        var bundle = Bundle.Find(refer.Source);
-                        bundle?.Obtain(Const.DebugMode ? $"[XAsset.Object.Obtain: {refer.Label}]" : "");
+                        // 这里不需要调用 AssetBundle 的 Obtain 逻辑，因为加载出的原始对象计数已经为1
+                        // 只要把它从 originalObjects 中移除，等待手动 Release 或自动 Defer 即可
+
+                        // var bundle = Bundle.Find(refer.Source);
+                        // bundle?.Obtain(Const.DebugMode ? $"[XAsset.Object.Obtain: {refer.Label}]" : "");
 
                         XLog.Info("XAsset.Object.Obtain: obtain {0} by {1}.", refer.Source, refer.Label);
                     }
@@ -159,7 +160,7 @@ namespace EFramework.Asset
             /// <summary>
             /// Release 释放指定游戏对象的资源包。
             /// </summary>
-            /// <param name="originalObject">要释放资源包的游戏对象，建议使用未实例化的源对象，避免过度释放导致资源包提早卸载。</param>
+            /// <param name="originalObject">要释放资源包的游戏对象</param>
             public static void Release(GameObject originalObject)
             {
                 if (originalObject && Const.ReferMode)
@@ -167,13 +168,16 @@ namespace EFramework.Asset
                     var refer = originalObject.GetComponent<Object>();
                     if (refer)
                     {
-                        if (!obtainedObjects.Contains(refer))
+                        var originalIndex = originalObjects.IndexOf(refer);
+                        var obtainedIndex = obtainedObjects.IndexOf(refer);
+                        if (originalIndex < 0 && obtainedIndex < 0)
                         {
-                            XLog.Error("XAsset.Object.Release: {0} is not tracked in the obtained object list.", refer.Label);
+                            XLog.Error("XAsset.Object.Release: {0} is not tracked in original or obtained object list.", refer.Label);
                             return;
                         }
 
-                        obtainedObjects.Remove(refer);
+                        if (originalIndex >= 0) originalObjects.RemoveAt(originalIndex);
+                        if (obtainedIndex >= 0) obtainedObjects.RemoveAt(obtainedIndex);
 
                         var bundle = Bundle.Find(refer.Source);
                         bundle?.Release(Const.DebugMode ? $"[XAsset.Object.Release: {refer.Label}]" : "");
