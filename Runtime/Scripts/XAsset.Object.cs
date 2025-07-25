@@ -103,7 +103,7 @@ namespace EFramework.Asset
             {
                 if (originalObject && Const.ReferMode)
                 {
-                    var refer = originalObject.AddComponent<Object>();
+                    if (!originalObject.TryGetComponent<Object>(out var refer)) refer = originalObject.AddComponent<Object>();
                     refer.Source = bundleName;
                     originalObjects.Add(refer);
                     return refer;
@@ -122,7 +122,7 @@ namespace EFramework.Asset
                     {
                         var bundle = Bundle.Find(refer.Source);
                         bundle?.Release(Const.DebugMode ? $"[XAsset.Object.Defer: {refer.Label}]" : "");
-                        XLog.Info("XAsset.Object.Defer: {0}", refer.Source);
+                        XLog.Info("XAsset.Object.Defer: release {0} by {1}.", refer.Source, refer.Label);
                     }
                     originalObjects.Clear();
                 }
@@ -131,12 +131,12 @@ namespace EFramework.Asset
             /// <summary>
             /// Obtain 引用指定游戏对象的资源包。
             /// </summary>
-            /// <param name="originObject">要引用资源包的游戏对象，建议使用未实例化的源对象，避免过度引用导致资源包计数异常。</param>
-            public static void Obtain(GameObject originObject)
+            /// <param name="originalObject">要引用资源包的游戏对象，建议使用未实例化的源对象，避免过度引用导致资源包计数异常。</param>
+            public static void Obtain(GameObject originalObject)
             {
-                if (originObject && Const.ReferMode)
+                if (originalObject && Const.ReferMode)
                 {
-                    var refer = originObject.GetComponent<Object>();
+                    var refer = originalObject.GetComponent<Object>();
                     if (refer)
                     {
                         if (!originalObjects.Contains(refer))
@@ -151,7 +151,7 @@ namespace EFramework.Asset
                         var bundle = Bundle.Find(refer.Source);
                         bundle?.Obtain(Const.DebugMode ? $"[XAsset.Object.Obtain: {refer.Label}]" : "");
 
-                        XLog.Info("XAsset.Object.Obtain: {0}", refer.Source);
+                        XLog.Info("XAsset.Object.Obtain: obtain {0} by {1}.", refer.Source, refer.Label);
                     }
                 }
             }
@@ -159,12 +159,12 @@ namespace EFramework.Asset
             /// <summary>
             /// Release 释放指定游戏对象的资源包。
             /// </summary>
-            /// <param name="originObject">要释放资源包的游戏对象，建议使用未实例化的源对象，避免过度释放导致资源包提早卸载。</param>
-            public static void Release(GameObject originObject)
+            /// <param name="originalObject">要释放资源包的游戏对象，建议使用未实例化的源对象，避免过度释放导致资源包提早卸载。</param>
+            public static void Release(GameObject originalObject)
             {
-                if (originObject && Const.ReferMode)
+                if (originalObject && Const.ReferMode)
                 {
-                    var refer = originObject.GetComponent<Object>();
+                    var refer = originalObject.GetComponent<Object>();
                     if (refer)
                     {
                         if (!obtainedObjects.Contains(refer))
@@ -177,7 +177,7 @@ namespace EFramework.Asset
 
                         var bundle = Bundle.Find(refer.Source);
                         bundle?.Release(Const.DebugMode ? $"[XAsset.Object.Release: {refer.Label}]" : "");
-                        XLog.Info("XAsset.Object.Release: {0}", refer.Source);
+                        XLog.Info("XAsset.Object.Release: release {0} by {1}.", refer.Source, refer.Label);
                     }
                 }
             }
