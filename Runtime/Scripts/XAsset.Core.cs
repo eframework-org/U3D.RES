@@ -56,7 +56,7 @@ namespace EFramework.Asset
     /// state 资源管理流程 {
     ///     state 引用计数流程 {
     ///         资源引用操作 --> 手动管理引用 : Object.Obtain
-    ///         资源引用操作 --> 自动管理引用 : Object.Watch
+    ///         资源引用操作 --> 自动管理引用 : Object.Watch/Awake
     ///
     ///         手动管理引用 --> 资源释放操作
     ///         自动管理引用 --> 资源释放操作
@@ -64,7 +64,7 @@ namespace EFramework.Asset
     ///
     ///     state 资源释放流程 {
     ///         资源释放操作 --> 手动管理释放 : Object.Release
-    ///         资源释放操作 --> 自动管理释放 : Object.Defer
+    ///         资源释放操作 --> 自动管理释放 : Object.Defer/OnDestroy
     ///      
     ///         手动管理释放 --> 减少引用计数
     ///         自动管理释放 --> 减少引用计数
