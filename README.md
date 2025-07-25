@@ -10,7 +10,7 @@ EFramework Asset for Unity 提供了一套完整的资源管理解决方案，�
 
 - [XAsset.Core](Documentation~/XAsset.Core.md) 实现了资源管理器的自动初始化，提供了系统事件管理、异步加载处理器等功能
 - [XAsset.Bundle](Documentation~/XAsset.Bundle.md) 提供了资源包的管理功能，支持自动处理依赖关系，并通过引用计数管理资源包的生命周期
-- [XAsset.Object](Documentation~/XAsset.Object.md) 通过引用计数机制跟踪资源（Prefab）实例（GameObject）的使用情况，确保实例能够被正确释放
+- [XAsset.Object](Documentation~/XAsset.Object.md) 用于跟踪资源（Prefab）实例（GameObject）的使用情况，确保资源依赖包被正确释放
 - [XAsset.Resource](Documentation~/XAsset.Resource.md) 提供了 Unity 资源的加载与卸载，支持自动处理依赖资源的生命周期
 - [XAsset.Scene](Documentation~/XAsset.Scene.md) 提供了 Unity 场景的加载与卸载，支持自动处理依赖资源的生命周期
 - [XAsset.Const](Documentation~/XAsset.Const.md) 提供了一些常量定义和运行时环境控制，包括运行配置和 Bundle 名称生成、偏移计算等功能

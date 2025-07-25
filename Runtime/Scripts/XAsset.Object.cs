@@ -11,7 +11,7 @@ namespace EFramework.Asset
     public partial class XAsset : MonoBehaviour
     {
         /// <summary>
-        /// XAsset.Object 通过引用计数机制跟踪资源（Prefab）实例（GameObject）的使用情况，确保实例能够被正确释放。
+        /// XAsset.Object 用于跟踪资源（Prefab）实例（GameObject）的使用情况，确保资源依赖包被正确释放。
         /// </summary>
         /// <remarks>
         /// <code>
