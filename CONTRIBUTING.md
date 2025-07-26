@@ -44,6 +44,11 @@
 │   │   └── ...
 │   └── Resources/                                 # 编辑器资源
 │
+├── Plugins/                                       # 插件目录
+│   ├── Android/                                   # Android 平台插件
+│   ├── iOS/                                       # iOS 平台插件
+│   └── ...
+│
 ├── Runtime/                                       # 运行时目录
 │   ├── Scripts/                                   # 运行时脚本
 │   │   ├── <Module1>.cs                           # 运行时模块1实现
