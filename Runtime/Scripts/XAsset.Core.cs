@@ -24,77 +24,69 @@ namespace EFramework.Asset
     /// 
     /// 以下流程图展示了资源管理器的运行时逻辑，包括资源/场景加载/卸载、引用计数管理、内置事件机制的主要流程：
     /// 
-    /// state 资源加载流程 {
-    ///     资源加载开始 --> 资源加载请求 : OnPreLoadAsset
-    ///     资源加载请求 --> 资源加载模式
-    ///  
-    ///     资源加载模式 --> Bundle资源加载 : Bundle模式
-    ///     资源加载模式 --> Resources资源加载 : Resources模式
-    ///  
-    ///     Bundle资源加载 --> 资源引用操作
-    ///     Resources资源加载 --> 加载目标资源
-    ///  
-    ///     资源引用操作 --> 加载目标资源
-    ///     加载目标资源 --> 资源加载完成 : OnPostLoadAsset
-    /// }
-    ///
-    /// state 场景加载流程 {
-    ///     场景加载开始 --> 场景加载请求 : OnPreLoadScene
-    ///     场景加载请求 --> 场景加载模式
-    ///  
-    ///     场景加载模式 --> Bundle场景加载 : Bundle模式
-    ///     场景加载模式 --> Resources场景加载 : Resources模式
-    ///
-    ///     Bundle场景加载 --> 资源引用操作
-    ///     Resources场景加载 --> 加载目标场景
-    ///  
-    ///     资源引用操作 --> 加载目标场景
-    ///     加载目标场景 --> 场景加载完成 : OnPostLoadScene
-    /// }
-    ///
-    /// state 资源管理流程 {
-    ///     state 引用计数流程 {
-    ///         资源引用操作 --> 手动管理引用 : Object.Obtain
-    ///         资源引用操作 --> 自动管理引用 : Object.Watch/Awake
-    ///
-    ///         手动管理引用 --> 资源释放操作
-    ///         自动管理引用 --> 资源释放操作
+    /// stateDiagram-v2
+    ///     direction TB
+    /// 
+    ///     state 资源管理流程 {
+    ///         资源加载请求 --> 资源加载模式 : OnPreLoadResource
+    ///         
+    ///         资源加载模式 --> Bundle资源加载 : bundle = true
+    ///         资源加载模式 --> Resources资源加载 : bundle == false or resource = true
+    ///         
+    ///         Bundle资源加载 --> 手动管理引用 : obtain = true
+    ///         Bundle资源加载 --> 自动管理引用 : Refer.Awake
+    ///         Resources资源加载 --> 加载目标资源
+    ///         
+    ///         增加引用计数 --> 加载目标资源
+    ///         加载目标资源 --> 资源加载完成 : OnPostLoadResource
+    /// 
+    ///         资源加载完成 --> 资源卸载请求
+    ///         资源卸载请求 --> 手动管理释放: Unload
+    ///         资源卸载请求 --> 自动管理释放: Refer.OnDestroy
     ///     }
-    ///
-    ///     state 资源释放流程 {
-    ///         资源释放操作 --> 手动管理释放 : Object.Release
-    ///         资源释放操作 --> 自动管理释放 : Object.Defer/OnDestroy
-    ///      
-    ///         手动管理释放 --> 减少引用计数
-    ///         自动管理释放 --> 减少引用计数
-    ///      
-    ///         减少引用计数 --> 引用计数为零
-    ///         引用计数为零 --> 卸载资源包 : OnPostUnloadBundle
+    /// 
+    ///     state 场景管理流程 {
+    ///         场景加载请求 --> 场景加载模式 : OnPreLoadScene
+    ///         
+    ///         场景加载模式 --> Bundle场景加载 : bundle = true
+    ///         场景加载模式 --> Resources场景加载 : bundle = false
+    /// 
+    ///         Bundle场景加载 --> 自动管理引用
+    ///         Resources场景加载 --> 加载目标场景
+    ///         
+    ///         增加引用计数 --> 加载目标场景
+    ///         加载目标场景 --> 场景加载完成 : OnPostLoadScene
+    /// 
+    ///         场景加载完成 --> 场景卸载请求 : SceneManager.sceneUnloaded
+    ///         场景卸载请求 --> 手动管理释放: Unload
+    ///         场景卸载请求 --> 自动管理释放 : isSubScene == false
     ///     }
-    ///
-    ///     state 自动卸载流程 {
-    ///         监听场景卸载 --> 场景卸载请求 : SceneManager.sceneUnloaded
-    ///         场景卸载请求 --> 判断场景类型 : 主场景 isSubScene == false
-    ///         判断场景类型 --> 引用模式检查 : OnPreUnloadAll
-    ///      
-    ///         引用模式检查 --> 资源释放操作 : 启用
-    ///         引用模式检查 --> 卸载所有场景 : 禁用
-    ///
-    ///         卸载所有场景 --> 清空场景记录 : OnPostUnloadAll
+    /// 
+    ///     state 依赖管理流程 {
+    ///         state 依赖引用流程 {
+    ///             手动管理引用 --> 增加引用计数 : bundle.Obtain
+    ///             自动管理引用 --> 增加引用计数 : bundle.Obtain
+    ///         }
+    /// 
+    ///         state 依赖释放流程 {
+    ///             手动管理释放 --> 减少引用计数 : bundle.Release
+    ///             自动管理释放 --> 减少引用计数 : bundle.Release
+    ///             
+    ///             减少引用计数 --> 引用计数为零
+    ///             引用计数为零 --> 卸载资源依赖 : OnPostUnloadBundle
+    ///         }
     ///     }
     /// 
     /// 2. 事件类型
     ///    - 功能说明：定义资源生命周期中的关键事件
     ///    - 事件列表：
-    ///      - OnPreLoadAsset：资源加载前
-    ///      - OnPostLoadAsset：资源加载后
+    ///      - OnPreLoadResource：资源加载前
+    ///      - OnPostLoadResource：资源加载后
     ///      - OnPreLoadScene：场景加载前
     ///      - OnPostLoadScene：场景加载后
-    ///      - OnPreUnloadAll：卸载所有资源前
-    ///      - OnPostUnloadAll：卸载所有资源后
     ///      - OnPostUnloadBundle：资源包卸载后
     ///    - 使用示例：
-    ///      XAsset.Event.Reg(XAsset.EventType.OnPreLoadAsset, (asset) => Debug.Log("资源加载前：" + asset));
+    ///      XAsset.Event.Reg(XAsset.EventType.OnPreLoadResource, (asset) => Debug.Log("资源加载前：" + asset));
     /// </code>
     /// 更多信息请参考模块文档。
     /// </remarks>
@@ -230,12 +222,12 @@ namespace EFramework.Asset
         public enum EventType
         {
             /// <summary>
-            /// OnPreLoadAsset 是资源加载前的事件。
+            /// OnPreLoadResource 是资源加载前的事件。
             /// </summary>
             OnPreLoadResource,
 
             /// <summary>
-            /// OnPostLoadAsset 是资源加载完成后的事件。
+            /// OnPostLoadResource 是资源加载完成后的事件。
             /// </summary>
             OnPostLoadResource,
 
