@@ -4,13 +4,12 @@
 [![Downloads](https://img.shields.io/npm/dm/org.eframework.u3d.res)](https://www.npmjs.com/package/org.eframework.u3d.res)
 [![DeepWiki](https://img.shields.io/badge/DeepWiki-Explore-blue)](https://deepwiki.com/eframework-org/U3D.RES)
 
-XAsset.Core 实现了资源管理器的自动初始化，提供了系统事件管理、异步加载处理器等功能。
+XAsset.Core 是资源管理器的基础模块，提供了内部事件管理器、异步加载处理器等功能。
 
 ## 功能特性
 
-- 自动初始化：自动加载资源清单并全局管理资源
-- 系统事件：定义资源系统生命周期中的关键事件
-- 引用计数：通过引用计数机制管理资源生命周期
+- 内部事件管理器：定义资源系统生命周期中的关键事件
+- 异步加载处理器：负责跟踪和管理异步资源加载的过程
 
 ## 使用手册
 
