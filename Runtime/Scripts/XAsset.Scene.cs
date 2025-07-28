@@ -87,7 +87,7 @@ namespace EFramework.Asset
             /// <summary>
             /// Loaded 记录已加载的场景。
             /// </summary>
-            internal static readonly Dictionary<string, string> Loaded = new();
+            internal static readonly List<string> Loaded = new();
 
 #if UNITY_EDITOR
             [UnityEditor.InitializeOnLoadMethod]
@@ -108,7 +108,7 @@ namespace EFramework.Asset
                     scene.isSubScene = mode == LoadSceneMode.Additive;
                     if (Const.BundleMode)
                     {
-                        if (!Loaded.ContainsKey(scene.name)) Loaded.Add(scene.name, scene.path);
+                        if (!Loaded.Contains(scene.name)) Loaded.Add(scene.name);
                     }
                 };
 
@@ -118,7 +118,7 @@ namespace EFramework.Asset
                     {
                         if (Const.BundleMode)
                         {
-                            foreach (var kvp in Loaded) Unload(kvp.Value);
+                            foreach (var loaded in Loaded) Unload(loaded);
                             Loaded.Clear();
                         }
                         else Loaded.Clear();
