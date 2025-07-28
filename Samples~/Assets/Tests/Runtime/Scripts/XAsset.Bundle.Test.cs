@@ -17,6 +17,7 @@ public class TestXAssetBundle
     [SetUp]
     public void Setup()
     {
+        Const.bBundleMode = true;
         Const.bundleMode = true;
         Bundle.Initialize();
     }
@@ -34,6 +35,7 @@ public class TestXAssetBundle
     [TestCase(false)]
     public void Initialize(bool bundleMode)
     {
+        Const.bBundleMode = true;
         Const.bundleMode = bundleMode;
         Bundle.Initialize();
         if (bundleMode) Assert.IsNotNull(Bundle.Manifest, "Bundle 模式下 Manifest 应该被加载且不为空。");
@@ -54,7 +56,6 @@ public class TestXAssetBundle
         // Assert
         Assert.AreEqual(1, count1, "Obtain应该增加引用计数。");
         Assert.AreEqual(2, count2, "Obtain应该增加引用计数。");
-        Assert.AreEqual(2, bundle.Count, "最终计数应该为2。");
     }
 
     [Test]
@@ -67,18 +68,17 @@ public class TestXAssetBundle
         XAsset.Event.Reg(XAsset.EventType.OnPostUnloadBundle, (AssetBundle ab) => { assetBundle = ab; });
 
         // Act
+        bundle.Obtain();
         int count = bundle.Release();
 
         // Assert
         Assert.AreEqual(0, count, "Release应该减少引用计数。");
         Assert.IsFalse(Bundle.Loaded.ContainsKey(bundle.Name), "当计数为零时，Bundle应该从Loaded中移除。");
         Assert.IsNotNull(assetBundle, "当bundle被释放时，应该通知事件。");
-
-        Bundle.Unload(bundle.Name);
     }
 
     [Test]
-    public void LoadAndUnload()
+    public void Load()
     {
         // Act
         var bundleName = Const.GetName("Assets/Tests/Runtime/Resources/Bundle/Prefab/TestCube.prefab");
@@ -98,9 +98,6 @@ public class TestXAssetBundle
         Assert.AreEqual(bundleName, bundle.Name, "加载的bundle名称应匹配。");
         Assert.IsNull(noneBundle, "加载不存在的bundle应返回null。");
         Assert.IsFalse(Bundle.Loaded.ContainsKey(noneBundleName), "不存在的bundle不应被添加到Loaded字典中。");
-
-        Bundle.Unload(bundle.Name);
-        Assert.IsTrue(Bundle.Loaded.Count == 0, "卸载后，Bundle应从Loaded中移除。");
     }
 
     [UnityTest]
@@ -114,44 +111,19 @@ public class TestXAssetBundle
             // Assert
             Assert.IsNotNull(handler.Asset, "加载的bundle不应为空。");
             Assert.AreEqual(bundleName, handler.Asset.name, "加载的bundle名称应匹配。");
-            Bundle.Unload(bundleName);
         };
         yield return Bundle.LoadAsync(bundleName, handler);
     }
 
     [Test]
-    public void LoadSame()
-    {
-        // Act
-        var bundleName = Const.GetName("Assets/Tests/Runtime/Resources/Bundle/Prefab/TestCube.prefab");
-        var bundle1 = Bundle.Load(bundleName);
-        var bundle2 = Bundle.Load(bundleName);
-
-        // Assert
-        Assert.IsNotNull(bundle1, "第一次加载的bundle不应为空。");
-        Assert.IsNotNull(bundle2, "第二次加载的bundle不应为空。");
-        Assert.AreSame(bundle1, bundle2, "两个引用应指向同一个bundle对象。");
-        Assert.AreEqual(2, bundle1.Count, "两次加载后引用计数应为2。");
-
-        // Cleanup
-        Bundle.Unload(bundleName);
-        Assert.AreEqual(1, Bundle.Find(bundleName).Count, "第一次卸载后引用计数应为1。");
-        Bundle.Unload(bundleName);
-        Assert.IsNull(Bundle.Find(bundleName), "第二次卸载后bundle应完全卸载。");
-    }
-
-    [Test]
     public void Find()
     {
-        // Arrange
+        Assert.IsTrue(Bundle.Find("TestBundle") == null);
+
         var bundle = new Bundle { Name = "TestBundle", Count = 1 };
         Bundle.Loaded.Add(bundle.Name, bundle);
 
-        // Assert
         Assert.IsTrue(Bundle.Find("TestBundle") != null);
-
-        Bundle.Unload(bundle.Name);
-        Assert.IsTrue(Bundle.Find("TestBundle") == null);
     }
 }
 #endif

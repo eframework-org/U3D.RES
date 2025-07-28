@@ -118,17 +118,83 @@ namespace EFramework.Asset
             internal static readonly Dictionary<string, Task> Loading = new();
 
             /// <summary>
+            /// Refer 用于跟踪资源（Prefab）实例（GameObject）的使用情况，确保资源依赖包被正确释放
+            /// </summary>
+            internal class Refer : MonoBehaviour
+            {
+                /// <summary>
+                /// Source 是资源在 Bundle 中的原始路径，用于定位资源包实例。
+                /// </summary>
+                [SerializeField]
+                internal string Source;
+
+                /// <summary>
+                /// Label 是用于调试的对象标签，格式为"对象名@哈希码"。
+                /// 即使对象被销毁也能保持唯一标识。
+                /// </summary>
+                internal string Label;
+
+                /// <summary>
+                /// GenLabel 用于构造用于调试的对象标签。
+                /// </summary>
+                internal void GenLabel() { Label = $"{name}@{GetHashCode()}"; }
+
+                /// <summary>
+                /// Awake 在 Unity 对象初始化时调用。
+                /// </summary>
+                internal void Awake()
+                {
+                    if (Const.ReferMode)
+                    {
+                        GenLabel(); // 提前初始化标签，避免切换场景时因源实例销毁引起的空异常
+                        var bundle = Bundle.Find(Source);
+                        bundle?.Obtain(Const.DebugMode ? $"[Resource.Refer.Awake: {Label}]" : "");
+                    }
+                }
+
+                /// <summary>
+                /// OnDestroy 在 Unity 对象销毁时的调用。
+                /// </summary>
+                internal void OnDestroy()
+                {
+                    if (Const.ReferMode)
+                    {
+                        var bundle = Bundle.Find(Source);
+                        bundle?.Release(Const.DebugMode ? $"[Resource.Refer.OnDestroy: {Label}]" : "");
+                    }
+                }
+
+                /// <summary>
+                /// Watch 监听指定游戏对象的生命周期，确保对象在被销毁前进行资源包释放。
+                /// </summary>
+                /// <param name="originalObject">要监听的游戏对象。</param>
+                /// <param name="bundleName">资源包名称，用于定位资源包实例。</param>
+                internal static Refer Watch(GameObject originalObject, string bundleName)
+                {
+                    if (originalObject && Const.ReferMode)
+                    {
+                        if (!originalObject.TryGetComponent<Refer>(out var refer)) refer = originalObject.AddComponent<Refer>();
+                        refer.Source = bundleName;
+                        refer.GenLabel(); // 提前初始化标签，避免切换场景时因源实例销毁引起的空异常
+                        return refer;
+                    }
+                    return null;
+                }
+            }
+
+            /// <summary>
             /// Load 同步加载指定类型的资源。
             /// 根据当前模式和参数，从 Resources 目录或 AssetBundle 文件中加载资源。
             /// 在 Bundle 模式下会自动处理资源包的加载和依赖关系。
             /// </summary>
             /// <param name="path">资源在项目中的相对路径</param>
             /// <param name="type">要加载的资源类型</param>
-            /// <param name="resource">是否强制从 Resources 加载，忽略当前模式设置</param>
+            /// <param name="resource">是否强制从 Resources 加载</param>
+            /// <param name="obtain">是否保留对 AssetBundle 的引用</param>
             /// <returns>加载的资源对象，加载失败时返回null</returns>
-            public static UnityEngine.Object Load(string path, Type type, bool resource = false)
+            public static UnityEngine.Object Load(string path, Type type, bool resource = false, bool obtain = true)
             {
-                try { Event.Notify(EventType.OnPreLoadAsset, path); }
+                try { Event.Notify(EventType.OnPreLoadResource, path); }
                 catch (Exception e) { XLog.Panic(e); }
                 UnityEngine.Object asset = null;
                 try
@@ -145,11 +211,14 @@ namespace EFramework.Asset
                         var lastPart = path.LastIndexOf("/");
                         var assetName = path[(lastPart + 1)..];
                         var bundleName = Const.GetName(path);
-                        var bundle = Bundle.Load(bundleName);
-                        if (bundle != null)
+                        var bundleInfo = Bundle.Load(bundleName);
+                        if (bundleInfo != null)
                         {
-                            asset = bundle.Source.LoadAsset(assetName, type);
-                            if (asset is GameObject gameObject) Object.Watch(gameObject, bundleName);
+                            asset = bundleInfo.Source.LoadAsset(assetName, type);
+                            // 如果是自动引用模式且资源为游戏对象，则监控它的生命周期并自动引用与释放
+                            if (asset is GameObject gameObject && Const.ReferMode) Refer.Watch(gameObject, bundleName);
+                            // 如果指示保留资源，则增加对该资源的引用计数并由业务层自行释放
+                            if (obtain) bundleInfo.Obtain(Const.DebugMode ? $"[Resource.Load: {path}]" : "");
                         }
                         else XLog.Error("XAsset.Resource.Load: sync load error: {0}", path);
                     }
@@ -157,7 +226,7 @@ namespace EFramework.Asset
                 catch (Exception e) { throw e; }
                 finally
                 {
-                    try { Event.Notify(EventType.OnPostLoadAsset, path); }
+                    try { Event.Notify(EventType.OnPostLoadResource, path); }
                     catch (Exception e) { XLog.Panic(e); }
                 }
                 return asset;
@@ -170,8 +239,9 @@ namespace EFramework.Asset
             /// <typeparam name="T">要加载的资源类型</typeparam>
             /// <param name="path">资源在项目中的相对路径</param>
             /// <param name="resource">是否强制从 Resources 加载</param>
+            /// <param name="obtain">是否保留对 AssetBundle 的引用</param>
             /// <returns>加载的资源对象，加载失败时返回null</returns>
-            public static T Load<T>(string path, bool resource = false) where T : UnityEngine.Object { return Load(path, typeof(T), resource) as T; }
+            public static T Load<T>(string path, bool resource = false, bool obtain = true) where T : UnityEngine.Object { return Load(path, typeof(T), resource, obtain) as T; }
 
             /// <summary>
             /// LoadAsync 异步加载资源。
@@ -182,11 +252,12 @@ namespace EFramework.Asset
             /// <param name="type">要加载的资源类型</param>
             /// <param name="callback">资源加载完成时的回调函数</param>
             /// <param name="resource">是否强制从 Resources 加载</param>
+            /// <param name="obtain">是否保留对 AssetBundle 的引用</param>
             /// <returns>用于跟踪加载进度的Handler对象</returns>
-            public static Handler LoadAsync(string path, Type type, Callback callback = null, bool resource = false)
+            public static Handler LoadAsync(string path, Type type, Callback callback = null, bool resource = false, bool obtain = true)
             {
                 var handler = new Handler();
-                XLoom.StartCR(LoadAsync(path, type, callback, handler, resource));
+                XLoom.StartCR(LoadAsync(path, type, callback, handler, resource, obtain));
                 return handler;
             }
 
@@ -198,8 +269,9 @@ namespace EFramework.Asset
             /// <param name="path">资源在项目中的相对路径</param>
             /// <param name="callback">资源加载完成时的类型安全回调</param>
             /// <param name="resource">是否强制从 Resources 加载</param>
+            /// <param name="obtain">是否保留对 AssetBundle 的引用</param>
             /// <returns>用于跟踪加载进度的Handler对象</returns>
-            public static Handler LoadAsync<T>(string path, Action<T> callback = null, bool resource = false) where T : UnityEngine.Object { return LoadAsync(path, typeof(T), (asset) => callback?.Invoke(asset as T), resource); }
+            public static Handler LoadAsync<T>(string path, Action<T> callback = null, bool resource = false, bool obtain = true) where T : UnityEngine.Object { return LoadAsync(path, typeof(T), (asset) => callback?.Invoke(asset as T), resource, obtain); }
 
             /// <summary>
             /// LoadAsync 异步加载资源的内部实现。
@@ -211,9 +283,9 @@ namespace EFramework.Asset
             /// 3. 在 Bundle 模式下处理依赖关系
             /// 4. 触发加载完成事件和回调
             /// </summary>
-            internal static IEnumerator LoadAsync(string path, Type type, Callback callback, Handler handler, bool resource = false)
+            internal static IEnumerator LoadAsync(string path, Type type, Callback callback, Handler handler, bool resource = false, bool obtain = true)
             {
-                try { Event.Notify(EventType.OnPreLoadAsset, path); }
+                try { Event.Notify(EventType.OnPreLoadResource, path); }
                 catch (Exception e) { XLog.Panic(e); }
 
                 UnityEngine.Object asset = null;
@@ -265,7 +337,10 @@ namespace EFramework.Asset
                             asset = request.asset;
                             Loading.Remove(path);
                             handler.doneCount++;
-                            if (asset is GameObject gameObject) Object.Watch(gameObject, bundleName);
+                            // 如果是自动引用模式且资源为游戏对象，则监控它的生命周期并自动引用与释放
+                            if (asset is GameObject gameObject && Const.ReferMode) Refer.Watch(gameObject, bundleName);
+                            // 如果指示保留资源，则增加对该资源的引用计数并由业务层自行释放
+                            if (obtain) bundleInfo.Obtain(Const.DebugMode ? $"[Resource.LoadAsync.1: {path}]" : "");
                             handler.InvokePostload();
                         }
                         else
@@ -274,7 +349,10 @@ namespace EFramework.Asset
                             handler.InvokePreload();
                             yield return new WaitUntil(() => task.Request.isDone);
                             handler.doneCount++;
-                            if (asset is GameObject gameObject) Object.Watch(gameObject, bundleName);
+                            // 如果是自动引用模式且资源为游戏对象，则监控它的生命周期并自动引用与释放
+                            if (asset is GameObject gameObject && Const.ReferMode) Refer.Watch(gameObject, bundleName);
+                            // 如果指示保留资源，则增加对该资源的引用计数并由业务层自行释放
+                            if (obtain) bundleInfo.Obtain(Const.DebugMode ? $"[Resource.LoadAsync.2: {path}]" : "");
                             handler.InvokePostload();
                         }
                         asset = (task.Request as AssetBundleRequest).asset;
@@ -289,7 +367,7 @@ namespace EFramework.Asset
                     }
                 }
 
-                try { Event.Notify(EventType.OnPostLoadAsset, path); }
+                try { Event.Notify(EventType.OnPostLoadResource, path); }
                 catch (Exception e) { XLog.Panic(e); }
 
                 try { callback?.Invoke(asset); }
@@ -304,7 +382,14 @@ namespace EFramework.Asset
             /// <param name="path">要卸载的资源路径</param>
             public static void Unload(string path)
             {
-                if (Const.BundleMode) Bundle.Unload(Const.GetName(path));
+                if (Const.BundleMode && Bundle.Manifest)
+                {
+                    var resourceIndex = path.IndexOf("Resources/");
+                    if (resourceIndex < 0) path = "Resources/" + path;
+                    var bundleName = Const.GetName(path);
+                    var bundleInfo = Bundle.Find(bundleName);
+                    bundleInfo?.Release(Const.DebugMode ? $"[Resource.Unload: {path}]" : "");
+                }
             }
 
             /// <summary>

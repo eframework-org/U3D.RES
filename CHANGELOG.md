@@ -1,5 +1,15 @@
 # 更新记录
 
+## [0.1.2] - 2025-07-28
+### 变更
+- 内聚 Object 模块的功能至 Resource 模块，统一管理资源包的引用和释放
+- 移除冗余的内部事件：OnPreUnloadAll、OnPostUnloadAll
+- 变更内部事件的名称：OnPreLoadAsset -> OnPreLoadResource、OnPostLoadAsset -> OnPostLoadResource
+- 移除 Core 模块对 Scene 模块的管理，取消 Bundle 模块的自动初始化
+
+### 修复
+- 修复 Object 模块持有的原始 GameObject 列表引发的场景切换闪退问题
+
 ## [0.1.1] - 2025-07-25
 ### 修复
 - 修复 Object 模块 Watch 函数重复监听的问题

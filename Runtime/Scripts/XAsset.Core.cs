@@ -5,7 +5,6 @@
 using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using EFramework.Utility;
 
 namespace EFramework.Asset
@@ -233,12 +232,12 @@ namespace EFramework.Asset
             /// <summary>
             /// OnPreLoadAsset 是资源加载前的事件。
             /// </summary>
-            OnPreLoadAsset,
+            OnPreLoadResource,
 
             /// <summary>
             /// OnPostLoadAsset 是资源加载完成后的事件。
             /// </summary>
-            OnPostLoadAsset,
+            OnPostLoadResource,
 
             /// <summary>
             /// OnPreLoadScene 是场景加载前的事件。
@@ -251,16 +250,6 @@ namespace EFramework.Asset
             OnPostLoadScene,
 
             /// <summary>
-            /// OnPreUnloadAll 是开始卸载所有资源前的事件。
-            /// </summary>
-            OnPreUnloadAll,
-
-            /// <summary>
-            /// OnPostUnloadAll 是完成卸载所有资源后的事件。
-            /// </summary>
-            OnPostUnloadAll,
-
-            /// <summary>
             /// OnPostUnloadBundle 是资源包卸载完成后的事件。
             /// </summary>
             OnPostUnloadBundle,
@@ -270,53 +259,5 @@ namespace EFramework.Asset
         /// Event 是资源系统的内置事件管理器实例，用于处理资源生命周期相关的事件。
         /// </summary>
         public static readonly XEvent.Manager Event = new();
-
-#if UNITY_EDITOR
-        [UnityEditor.InitializeOnLoadMethod]
-#else
-        [UnityEngine.RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-#endif
-        /// <summary>
-        /// OnInit 是资源系统的初始化方法，在编辑器或运行时自动调用。
-        /// 负责设置场景加载和卸载的回调，处理资源清理和依赖关系。
-        /// </summary>
-        internal static void OnInit()
-        {
-#if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode) return;
-#endif
-
-            Bundle.Initialize();
-
-            SceneManager.sceneLoaded += (scene, mode) =>
-            {
-                scene.isSubScene = mode == LoadSceneMode.Additive;
-                if (Const.BundleMode)
-                {
-                    if (!Scene.Loaded.ContainsKey(scene.name)) Scene.Loaded.Add(scene.name, scene.path);
-                }
-            };
-
-            SceneManager.sceneUnloaded += scene =>
-            {
-                if (!scene.isSubScene)
-                {
-                    try { Event.Notify(EventType.OnPreUnloadAll, scene); }
-                    catch (Exception e) { XLog.Panic(e); }
-
-                    if (Const.BundleMode)
-                    {
-                        Object.Defer();
-
-                        foreach (var kvp in Scene.Loaded) Scene.Unload(kvp.Value);
-                        Scene.Loaded.Clear();
-                    }
-                    else Scene.Loaded.Clear();
-
-                    try { Event.Notify(EventType.OnPostUnloadAll, scene); }
-                    catch (Exception e) { XLog.Panic(e); }
-                }
-            };
-        }
     }
 }

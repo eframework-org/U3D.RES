@@ -89,6 +89,43 @@ namespace EFramework.Asset
             /// </summary>
             internal static readonly Dictionary<string, string> Loaded = new();
 
+#if UNITY_EDITOR
+            [UnityEditor.InitializeOnLoadMethod]
+#else
+            [UnityEngine.RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+#endif
+            /// <summary>
+            /// OnInit 是资源系统的初始化方法，在编辑器或运行时自动调用，监听场景加载和卸载的回调，自动处理场景依赖资源的卸载。
+            /// </summary>
+            internal static void OnInit()
+            {
+#if UNITY_EDITOR
+                if (!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode) return;
+#endif
+
+                SceneManager.sceneLoaded += (scene, mode) =>
+                {
+                    scene.isSubScene = mode == LoadSceneMode.Additive;
+                    if (Const.BundleMode)
+                    {
+                        if (!Loaded.ContainsKey(scene.name)) Loaded.Add(scene.name, scene.path);
+                    }
+                };
+
+                SceneManager.sceneUnloaded += scene =>
+                {
+                    if (!scene.isSubScene)
+                    {
+                        if (Const.BundleMode)
+                        {
+                            foreach (var kvp in Loaded) Unload(kvp.Value);
+                            Loaded.Clear();
+                        }
+                        else Loaded.Clear();
+                    }
+                };
+            }
+
             /// <summary>
             /// Load 同步加载场景。在 Bundle 模式下会自动加载场景对应的资源包。
             /// </summary>
@@ -112,8 +149,13 @@ namespace EFramework.Asset
                             bundleName = Const.GetName(nameOrPath);
                         }
                         else bundleName = Const.GetName($"Scenes/{sceneName}.unity");
-                        if (Bundle.Load(bundleName) == null) XLog.Error("XAsset.Scene.Load: can not load scene caused by nil scene bundle file.");
-                        else SceneManager.LoadScene(sceneName, loadMode);
+                        var bundleInfo = Bundle.Load(bundleName);
+                        if (bundleInfo == null) XLog.Error("XAsset.Scene.Load: can not load scene caused by nil scene bundle file.");
+                        else
+                        {
+                            bundleInfo.Obtain(Const.DebugMode ? $"[Scene.Load: {nameOrPath}]" : "");
+                            SceneManager.LoadScene(sceneName, loadMode);
+                        }
                     }
                     else SceneManager.LoadScene(sceneName, loadMode);
                 }
@@ -169,10 +211,12 @@ namespace EFramework.Asset
                     }
                     else bundleName = Const.GetName($"Scenes/{sceneName}.unity");
                     yield return XLoom.StartCR(Bundle.LoadAsync(bundleName, handler));
-                    if (Bundle.Find(bundleName) != null)
+                    var bundleInfo = Bundle.Find(bundleName);
+                    if (bundleInfo != null)
                     {
                         if (!Loading.TryGetValue(sceneName, out var task))
                         {
+                            bundleInfo.Obtain(Const.DebugMode ? $"[Scene.LoadAsync: {nameOrPath}]" : "");
                             var request = SceneManager.LoadSceneAsync(sceneName, loadMode);
                             task = new Task() { Name = sceneName, Request = request };
                             handler.Request = request;
@@ -256,7 +300,9 @@ namespace EFramework.Asset
                         bundleName = Const.GetName(nameOrPath);
                     }
                     else bundleName = Const.GetName($"Scenes/{sceneName}.unity");
-                    Bundle.Unload(bundleName);
+
+                    var bundleInfo = Bundle.Find(bundleName);
+                    bundleInfo?.Release(Const.DebugMode ? $"[Scene.Unload: {nameOrPath}]" : "");
                 }
             }
 

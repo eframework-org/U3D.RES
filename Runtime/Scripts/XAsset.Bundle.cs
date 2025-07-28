@@ -359,8 +359,6 @@ namespace EFramework.Asset
                     Loaded.Add(name, bundleInfo);
                 }
 
-                // 引用主包及其依赖包
-                bundleInfo.Obtain(Const.DebugMode ? $"[Bundle.Load: {name}]" : "");
                 return bundleInfo;
             }
 
@@ -490,21 +488,6 @@ namespace EFramework.Asset
                         }
                     }
                     handler.doneCount++;
-                }
-
-                // 引用主包及其依赖包
-                bundleInfo.Obtain(Const.DebugMode ? $"[Bundle.LoadAsync: {name}]" : "");
-            }
-
-            /// <summary>
-            /// Unload 卸载指定的资源包。这会减少资源包的引用计数，当计数为 0 时自动释放资源。
-            /// </summary>
-            /// <param name="name">要卸载的资源包名称</param>
-            public static void Unload(string name)
-            {
-                if (Loaded.TryGetValue(name, out var info))
-                {
-                    info.Release(Const.DebugMode ? $"[Sync.Unload: {name}]" : "");
                 }
             }
 

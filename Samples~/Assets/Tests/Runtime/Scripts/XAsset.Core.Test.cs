@@ -15,6 +15,7 @@ public class TestXAssetCore
     [OneTimeSetUp]
     public void Init()
     {
+        Const.bBundleMode = true;
         Const.bundleMode = true;
         Bundle.Initialize();
     }
@@ -36,7 +37,9 @@ public class TestXAssetCore
         bool[] bundleModes = { true, false };
         foreach (var bundleMode in bundleModes)
         {
+            Const.bBundleMode = true;
             Const.bundleMode = bundleMode;
+
             // 测试Progress
             var handler = new Handler
             {

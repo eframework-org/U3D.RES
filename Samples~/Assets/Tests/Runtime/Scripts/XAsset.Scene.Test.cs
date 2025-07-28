@@ -22,6 +22,7 @@ public class TestXAssetScene
     [OneTimeSetUp]
     public void Init()
     {
+        Const.bBundleMode = true;
         Const.bundleMode = true;
         Bundle.Initialize();
 
@@ -58,6 +59,7 @@ public class TestXAssetScene
         bool[] bundleModes = { true, false };
         foreach (var bundleMode in bundleModes)
         {
+            Const.bBundleMode = true;
             Const.bundleMode = bundleMode;
 
             foreach (var sceneName in sceneNames)
@@ -93,6 +95,7 @@ public class TestXAssetScene
         bool[] bundleModes = { true, false };
         foreach (var bundleMode in bundleModes)
         {
+            Const.bBundleMode = true;
             Const.bundleMode = bundleMode;
 
             foreach (var sceneName in sceneNames)
