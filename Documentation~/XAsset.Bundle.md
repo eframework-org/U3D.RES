@@ -20,7 +20,6 @@ XAsset.Bundle 提供了资源包的管理功能，支持自动处理依赖关系
 - 使用示例：
 ```csharp
 /// Initialize 初始化 Bundle 的清单文件，如果存在旧的清单会先卸载它。
-/// InitializeOnLoad 时会自动初始化，当资源清单发生变更时需要再次调用以重载。
 /// 仅适用于 Bundle 模式，这个清单文件对于资源的正确加载是必需的。
 XAsset.Bundle.Initialize();
 ```
