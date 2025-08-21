@@ -122,13 +122,30 @@ namespace EFramework.Asset
             {
                 get
                 {
-                    if (totalCount == 0 || totalCount == 1)
+                    if (totalCount == 0 || totalCount == 1) // Resources 模式或 AssetBundle 单资源
                     {
                         if (Request != null) return Request.progress;
                         else return 0f;
                     }
-                    else
+                    else // AssetBundle 资源 + 依赖
                     {
+                        #region TONOTICE
+                        // 业务层加载进度可能会卡在99%，这里进行调和其实作用并不大
+                        // 本质原因是资源/场景实例化引起的主线程卡顿
+                        // 这样调和了之后反而会引起进度的跳变，所以仍旧保留原来的实现
+                        // // 设置 AssetBundle 文件的加载进度调和值
+                        // // 设置 Resource 的实例化进度调和值
+                        // // 使得资源/场景的加载进度更平滑
+                        // const float bundleWeight = 0.5f;
+                        // const float resourceWeight = 0.5f;
+                        // if (Request != null)
+                        // {
+                        //     if (!Request.isDone) return (doneCount + 1) / (float)totalCount * bundleWeight + Request.progress * resourceWeight;
+                        //     else return 1f;
+                        // }
+                        // else return doneCount / (float)totalCount * bundleWeight;
+                        #endregion
+
                         if (Request != null)
                         {
                             if (!Request.isDone) return (doneCount + Request.progress) / totalCount;

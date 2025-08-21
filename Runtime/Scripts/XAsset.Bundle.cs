@@ -181,24 +181,14 @@ namespace EFramework.Asset
                 internal string Name;
 
                 /// <summary>
-                /// Bundle 是加载的 AssetBundle 对象。
+                /// Request 是 AssetBundle 的异步加载操作对象。
                 /// </summary>
-                internal AssetBundle Bundle;
+                internal AssetBundleCreateRequest Request;
 
                 /// <summary>
                 /// IsDone 表示是否完成加载。
                 /// </summary>
                 internal bool IsDone;
-
-                /// <summary>
-                /// OnPostload 用于监听加载完成事件。
-                /// </summary>
-                internal event Action OnPostload;
-
-                /// <summary>
-                /// InvokePostOnLoad 通知加载完成事件。
-                /// </summary>
-                internal void InvokePostOnLoad() { OnPostload?.Invoke(); }
             }
 
             /// <summary>
@@ -273,33 +263,31 @@ namespace EFramework.Asset
                             var dependency = dependencies[i];
                             if (!Loaded.ContainsKey(dependency))
                             {
-                                if (!Loading.ContainsKey(dependency))
+                                if (Loading.TryGetValue(dependency, out var dependencyTask))
                                 {
-                                    var task = new Task() { Name = dependency };
-                                    Loading.Add(dependency, task);
-
-                                    var path = XFile.PathJoin(Const.LocalPath, dependency);
-                                    var bundle = AssetBundle.LoadFromFile(path, 0, Const.GetOffset(dependency));
+                                    // 如果正在异步加载，通过访问 assetBundle 可以获取到实例，然后 isDone 为 true
+                                    // 这样就可以解决同步和异步并发加载相同资源导致的异常
+                                    // 内部机制：https://docs.unity.cn/cn/2021.1/ScriptReference/AssetBundleCreateRequest-assetBundle.html
+                                    // 踩坑小记：访问 assetBundle 时，其内部会执行 UnityEngine.SetupCoroutine:InvokeMoveNext
+                                    // 这样一来 LoadAsync 的 yield request 后续的流程就会执行，然后装载实例至 Loaded 字典中
+                                    // 所以维护当前分支无需维护 Loaded 字典，仅获取即可
+                                    if (dependencyTask.Request.assetBundle) XLog.Warn("XAsset.Bundle.Load: access depend bundle: {0} in async loading queue.", dependency);
+                                    else XLog.Error("XAsset.Bundle.Load: access nil depend bundle: {0} in async loading queue.", dependency);
+                                }
+                                else
+                                {
+                                    var file = XFile.PathJoin(Const.LocalPath, dependency);
+                                    var bundle = AssetBundle.LoadFromFile(file, 0, Const.GetOffset(dependency));
                                     if (bundle == null)
                                     {
                                         XLog.Error("XAsset.Bundle.Load: sync load depend bundle error: {0}.", dependency);
                                         breakDependency = i;
-
-                                        task.Bundle = null;
-                                        task.IsDone = true;
-                                        task.InvokePostOnLoad();
-                                        Loading.Remove(dependency);
                                         break;
                                     }
                                     else
                                     {
                                         var dependBundle = new Bundle() { Name = dependency, Source = bundle };
                                         Loaded.Add(dependency, dependBundle);
-
-                                        task.Bundle = bundle;
-                                        task.IsDone = true;
-                                        task.InvokePostOnLoad();
-                                        Loading.Remove(dependency);
                                     }
                                 }
                             }
@@ -313,9 +301,9 @@ namespace EFramework.Asset
                                 var dependency = dependencies[i];
                                 if (Loaded.TryGetValue(dependency, out var dependBundle))
                                 {
-                                    if (dependBundle.Count == 0 && dependBundle.Source) // 只处理未被引用的 Bundle
+                                    if (dependBundle.Count == 0) // 只处理未被引用的 Bundle
                                     {
-                                        dependBundle.Source.Unload(true);
+                                        if (dependBundle.Source) dependBundle.Source.Unload(true);
                                         Loaded.Remove(dependency);
                                         XLog.Warn("XAsset.Bundle.Load: unload: {0} because of broken depend bundle: {1}.", dependency, dependencies[breakDependency]);
                                     }
@@ -326,35 +314,45 @@ namespace EFramework.Asset
                         }
                     }
 
-                    var bundleFile = XFile.PathJoin(Const.LocalPath, name);
-                    var mainBundle = AssetBundle.LoadFromFile(bundleFile, 0, Const.GetOffset(name));
-                    if (mainBundle == null)
+                    if (Loading.TryGetValue(name, out var mainTask))
                     {
-                        XLog.Error("XAsset.Bundle.Load: sync load main bundle error: {0}.", name);
-
-                        // 如果主包加载失败，则解除对所有依赖的引用
-                        if (dependencies != null && dependencies.Length > 0)
+                        // 流程处理机制参考上述加载依赖的分支
+                        if (mainTask.Request.assetBundle) XLog.Warn("XAsset.Bundle.Load: access main bundle: {0} in async loading queue.", name);
+                        else XLog.Error("XAsset.Bundle.Load: access nil main bundle: {0} in async loading queue.", name);
+                        bundleInfo = Find(name);
+                    }
+                    else
+                    {
+                        var file = XFile.PathJoin(Const.LocalPath, name);
+                        var bundle = AssetBundle.LoadFromFile(file, 0, Const.GetOffset(name));
+                        if (bundle == null)
                         {
-                            for (var i = 0; i < dependencies.Length; i++)
+                            XLog.Error("XAsset.Bundle.Load: sync load main bundle error: {0}.", name);
+
+                            // 如果主包加载失败，则解除对所有依赖的引用
+                            if (dependencies != null && dependencies.Length > 0)
                             {
-                                var dependency = dependencies[i];
-                                if (Loaded.TryGetValue(dependency, out var dependBundle))
+                                for (var i = 0; i < dependencies.Length; i++)
                                 {
-                                    if (dependBundle.Count == 0 && dependBundle.Source) // 只处理未被引用的 Bundle
+                                    var dependency = dependencies[i];
+                                    if (Loaded.TryGetValue(dependency, out var dependBundle))
                                     {
-                                        dependBundle.Source.Unload(true);
-                                        Loaded.Remove(dependency);
-                                        XLog.Warn("XAsset.Bundle.Load: unload: {0} because of broken main bundle: {1}.", dependency, name);
+                                        if (dependBundle.Count == 0) // 只处理未被引用的 Bundle
+                                        {
+                                            if (dependBundle.Source) dependBundle.Source.Unload(true);
+                                            Loaded.Remove(dependency);
+                                            XLog.Warn("XAsset.Bundle.Load: unload: {0} because of broken main bundle: {1}.", dependency, name);
+                                        }
                                     }
                                 }
                             }
+
+                            return null; // 不再执行后续流程
                         }
 
-                        return null; // 不再执行后续流程
+                        bundleInfo = new Bundle() { Name = name, Source = bundle };
+                        Loaded.Add(name, bundleInfo);
                     }
-
-                    bundleInfo = new Bundle() { Name = name, Source = mainBundle };
-                    Loaded.Add(name, bundleInfo);
                 }
 
                 return bundleInfo;
@@ -366,19 +364,19 @@ namespace EFramework.Asset
             /// <param name="name">要加载的资源包名称</param>
             /// <param name="handler">用于跟踪和报告加载进度的处理器</param>
             /// <returns>异步加载的协程对象</returns>
-            public static IEnumerator LoadAsync(string name, Handler handler)
+            public static IEnumerator LoadAsync(string name, Handler handler = null)
             {
-                if (!Loaded.TryGetValue(name, out var bundleInfo))
+                if (!Loaded.ContainsKey(name))
                 {
                     var dependencies = Manifest.GetAllDependencies(name);
-                    handler.totalCount += dependencies.Length + 1; // Self and Dependency
+                    if (handler != null) handler.totalCount += dependencies.Length + 1; // Self and Dependency
                     if (dependencies != null && dependencies.Length > 0)
                     {
                         var breakDependency = -1;
                         for (var i = 0; i < dependencies.Length; i++)
                         {
                             var dependency = dependencies[i];
-                            if (!Loaded.TryGetValue(dependency, out var dependBundle))
+                            if (!Loaded.ContainsKey(dependency))
                             {
                                 if (!Loading.TryGetValue(dependency, out var task))
                                 {
@@ -386,19 +384,17 @@ namespace EFramework.Asset
                                     Loading.Add(dependency, task);
 
                                     var file = XFile.PathJoin(Const.LocalPath, dependency);
-                                    var request = AssetBundle.LoadFromFileAsync(file, 0, Const.GetOffset(dependency));
-                                    yield return request;
+                                    task.Request = AssetBundle.LoadFromFileAsync(file, 0, Const.GetOffset(dependency));
+                                    yield return task.Request;
 
-                                    task.Bundle = request.assetBundle;
-                                    task.IsDone = true;
-                                    task.InvokePostOnLoad();
                                     Loading.Remove(dependency);
+                                    task.IsDone = true;
                                 }
                                 else yield return new WaitUntil(() => task.IsDone);
 
-                                if (!Loaded.TryGetValue(dependency, out dependBundle))
+                                if (!Loaded.ContainsKey(dependency))
                                 {
-                                    if (task.Bundle == null)
+                                    if (task.Request.assetBundle == null)
                                     {
                                         XLog.Error("XAsset.Bundle.LoadAsync: async load depend bundle error: {0}.", dependency);
                                         breakDependency = i;
@@ -406,12 +402,12 @@ namespace EFramework.Asset
                                     }
                                     else
                                     {
-                                        var bundle = new Bundle() { Name = dependency, Source = task.Bundle };
+                                        var bundle = new Bundle() { Name = dependency, Source = task.Request.assetBundle };
                                         Loaded.Add(dependency, bundle);
                                     }
                                 }
                             }
-                            handler.doneCount++;
+                            if (handler != null) handler.doneCount++;
                         }
 
                         // 如果有任何一个依赖加载失败，则解除对已加载依赖的引用
@@ -435,7 +431,7 @@ namespace EFramework.Asset
                         }
                     }
 
-                    if (!Loaded.TryGetValue(name, out var mainBundle))
+                    if (!Loaded.ContainsKey(name))
                     {
                         if (!Loading.TryGetValue(name, out var task))
                         {
@@ -443,16 +439,15 @@ namespace EFramework.Asset
                             Loading.Add(name, task);
 
                             var file = XFile.PathJoin(Const.LocalPath, name);
-                            var request = AssetBundle.LoadFromFileAsync(file, 0, Const.GetOffset(name));
-                            yield return request;
+                            task.Request = AssetBundle.LoadFromFileAsync(file, 0, Const.GetOffset(name));
+                            yield return task.Request;
 
-                            task.Bundle = request.assetBundle;
-                            task.IsDone = true;
-                            task.InvokePostOnLoad();
                             Loading.Remove(name);
+                            task.IsDone = true;
                         }
                         else yield return new WaitUntil(() => task.IsDone);
-                        if (task.Bundle == null)
+
+                        if (task.Request.assetBundle == null)
                         {
                             XLog.Error("XAsset.Bundle.LoadAsync: async load main bundle error: {0}.", name);
 
@@ -474,18 +469,19 @@ namespace EFramework.Asset
                                 }
                             }
 
-                            yield break;  // 不再执行后续流程
+                            yield break; // 不再执行后续流程
                         }
                         else
                         {
-                            if (!Loaded.TryGetValue(name, out bundleInfo))
+                            if (!Loaded.ContainsKey(name))
                             {
-                                bundleInfo = new Bundle() { Name = name, Source = task.Bundle };
+                                var bundleInfo = new Bundle() { Name = name, Source = task.Request.assetBundle };
                                 Loaded.Add(name, bundleInfo);
                             }
                         }
                     }
-                    handler.doneCount++;
+
+                    if (handler != null) handler.doneCount++;
                 }
             }
 

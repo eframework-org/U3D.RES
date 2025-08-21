@@ -105,14 +105,40 @@ public class TestXAssetBundle
     {
         // Act
         var bundleName = Const.GetName("Assets/Tests/Runtime/Resources/Bundle/Prefab/TestCube.prefab");
-        var handler = new Handler();
-        handler.OnPostload += () =>
+        yield return Bundle.LoadAsync(bundleName);
+        var bundle = Bundle.Find(bundleName);
+        Assert.IsNotNull(bundle, "加载的bundle不应为空。");
+        Assert.AreEqual(bundleName, bundle.Name, "加载的bundle名称应匹配。");
+    }
+
+    [UnityTest]
+    public IEnumerator LoadConcurrent()
+    {
+        var bundleName = Const.GetName("Assets/Tests/Runtime/Resources/Bundle/Prefab/TestCube.prefab");
+        for (var i = 0; i < 100; i++)
         {
-            // Assert
-            Assert.IsNotNull(handler.Asset, "加载的bundle不应为空。");
-            Assert.AreEqual(bundleName, handler.Asset.name, "加载的bundle名称应匹配。");
-        };
-        yield return Bundle.LoadAsync(bundleName, handler);
+            Setup();
+
+            var iter1 = Bundle.LoadAsync(bundleName);
+            iter1.MoveNext(); // 进入异步加载队列
+
+            var iter2 = Bundle.LoadAsync(bundleName);
+            iter2.MoveNext();
+
+            var iter3 = Bundle.LoadAsync(bundleName);
+            iter3.MoveNext();
+
+            var bundle = Bundle.Load(bundleName);
+
+            yield return iter1;
+            yield return iter2;
+            yield return iter3;
+
+            Assert.IsNotNull(bundle, "加载的bundle不应为空。");
+            Assert.AreEqual(bundleName, bundle.Name, "加载的bundle名称应匹配。");
+
+            Reset();
+        }
     }
 
     [Test]
