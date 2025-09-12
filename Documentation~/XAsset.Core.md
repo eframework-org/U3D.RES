@@ -35,8 +35,8 @@ stateDiagram-v2
         加载目标资源 --> 资源加载完成 : OnPostLoadResource
 
         资源加载完成 --> 资源卸载请求
-        资源卸载请求 --> 手动管理释放: Unload
-        资源卸载请求 --> 自动管理释放: Refer.OnDestroy
+        资源卸载请求 --> 手动管理释放 : Unload
+        资源卸载请求 --> 自动管理释放 : Refer.OnDestroy
     }
 
     state 场景管理流程 {
@@ -51,9 +51,9 @@ stateDiagram-v2
         增加引用计数 --> 加载目标场景
         加载目标场景 --> 场景加载完成 : OnPostLoadScene
 
-        场景加载完成 --> 场景卸载请求 : SceneManager.sceneUnloaded
-        场景卸载请求 --> 手动管理释放: Unload
-        场景卸载请求 --> 自动管理释放 : isSubScene == false
+        场景加载完成 --> 场景卸载请求
+        场景卸载请求 --> 手动管理释放 : Unload
+        场景卸载请求 --> 自动管理释放 : SceneManager.sceneUnloaded
     }
 
     state 依赖管理流程 {

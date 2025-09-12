@@ -105,7 +105,6 @@ namespace EFramework.Asset
 
                 SceneManager.sceneLoaded += (scene, mode) =>
                 {
-                    scene.isSubScene = mode == LoadSceneMode.Additive;
                     if (Const.BundleMode)
                     {
                         if (!Loaded.Contains(scene.name)) Loaded.Add(scene.name);
@@ -114,14 +113,13 @@ namespace EFramework.Asset
 
                 SceneManager.sceneUnloaded += scene =>
                 {
-                    if (!scene.isSubScene)
+                    if (Const.BundleMode)
                     {
-                        if (Const.BundleMode)
+                        if (Loaded.Contains(scene.name))
                         {
-                            foreach (var loaded in Loaded) Unload(loaded);
-                            Loaded.Clear();
+                            Unload(scene.name);
+                            Loaded.Remove(scene.name);
                         }
-                        else Loaded.Clear();
                     }
                 };
             }
